@@ -1,2 +1,8 @@
-*.class
+target/
+out/
 bin/
+.settings
+.classpath
+.project
+.idea/
+*.iml
