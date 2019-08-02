@@ -34,6 +34,20 @@ import io.interacto.command.Command;
  * @author Arnaud BLOUIN
  */
 public abstract class WidgetBindingImpl<A extends CommandImpl, I extends InteractionImpl<D, ?, ?>, N extends Instrument<?>, D extends InteractionData> implements WidgetBinding {
+	private static Logger logger = Logger.getLogger(WidgetBinding.class.getName());
+
+	/**
+	 * Sets the logger to use. Cannot be null.
+	 * Does not change the loggers of existing widget bindings.
+	 * This also sets this logger as the default logger for user interactions.
+	 * @param logger The new logger to use.
+	 */
+	public static void setLogger(final Logger logger) {
+		if(logger != null) {
+			WidgetBindingImpl.logger = logger;
+		}
+	}
+
 	protected Logger loggerBinding;
 
 	protected Logger loggerCmd;
@@ -85,7 +99,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	public void logBinding(final boolean log) {
 		if(log) {
 			if(loggerBinding == null) {
-				loggerBinding = Logger.getLogger(getClass().getName());
+				loggerBinding = logger;
 			}
 		}else {
 			loggerBinding = null;
@@ -95,7 +109,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	public void logCmd(final boolean log) {
 		if(log) {
 			if(loggerCmd == null) {
-				loggerCmd = Logger.getLogger(getClass().getName());
+				loggerCmd = logger;
 			}
 		}else {
 			loggerCmd = null;

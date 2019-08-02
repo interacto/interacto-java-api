@@ -14,17 +14,30 @@
  */
 package io.interacto.interaction;
 
+import io.interacto.fsm.FSM;
+import io.interacto.fsm.InitState;
+import io.interacto.fsm.OutputState;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.interacto.fsm.FSM;
-import io.interacto.fsm.InitState;
-import io.interacto.fsm.OutputState;
 
 public abstract class InteractionImpl<D extends InteractionData, E, F extends FSM<E>> {
+	private static Logger defaultLogger = Logger.getLogger(InteractionImpl.class.getName());
+
+	/**
+	 * Sets the logger to use. Cannot be null.
+	 * Does not change the loggers of existing user interactions.
+	 * @param logger The new logger to use.
+	 */
+	public static void setLogger(final Logger logger) {
+		if(logger != null) {
+			defaultLogger = logger;
+		}
+	}
+
 	protected final F fsm;
 	/** Defines whether the interaction is activated. If not, the interaction will not change on events. */
 	protected boolean activated;
@@ -161,7 +174,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	public void log(final boolean log) {
 		if(log) {
 			if(logger == null) {
-				logger = Logger.getLogger(getClass().getName());
+				logger = defaultLogger;
 			}
 		}else {
 			logger = null;
