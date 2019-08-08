@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.interacto</groupId>
     <artifactId>interacto-java-api</artifactId>
-    <version>3.4</version>
+    <version>3.2</version>
     <packaging>jar</packaging>
 
     <properties>
