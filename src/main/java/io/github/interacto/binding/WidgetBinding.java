@@ -14,10 +14,10 @@
  */
 package io.github.interacto.binding;
 
-import io.github.interacto.fsm.FSMHandler;
-import io.github.interacto.instrument.Instrument;
-import io.github.interacto.interaction.InteractionImpl;
+import io.github.interacto.command.CmdHandler;
 import io.github.interacto.command.Command;
+import io.github.interacto.fsm.FSMHandler;
+import io.github.interacto.interaction.InteractionImpl;
 
 /**
  * The concept of widget binding and its related services.
@@ -30,7 +30,7 @@ public interface WidgetBinding extends FSMHandler {
 	void clearEvents();
 
 	/**
-	 * After being created by method map, the command must be initialised by this method.
+	 * After being created by createCommand, the command can be initialised by this method.
 	 */
 	void first();
 
@@ -38,6 +38,22 @@ public interface WidgetBinding extends FSMHandler {
 	 * Updates the current command. To override.
 	 */
 	void then();
+
+	/**
+	 * On end
+	 */
+	void end();
+
+	/**
+	 * On cancellation
+	 */
+	void cancel();
+
+	/**
+	 * On end or cancellation
+	 */
+	void endOrCancel();
+
 
 	/**
 	 * @return True if the condition of the widget binding is respected.
@@ -61,9 +77,9 @@ public interface WidgetBinding extends FSMHandler {
 
 	/**
 	 * Activates the widget binding.
-	 * @param activ True: the widget binding is activated. Otherwise, it is desactivated.
+	 * @param activated True: the widget binding is activated. Otherwise, it is desactivated.
 	 */
-	void setActivated(final boolean activ);
+	void setActivated(final boolean activated);
 
 	/**
 	 * @return True: if the widget binding is currently used.
@@ -80,16 +96,7 @@ public interface WidgetBinding extends FSMHandler {
 	 */
 	boolean isExecute();
 
-	/**
-	 * Defines the interim feedback of the widget binding. If overridden, the interim
-	 * feedback of its instrument should be define too.
-	 */
-	void feedback();
-
-	/**
-	 * @return The instrument that contains the widget binding.
-	 */
-	Instrument<?> getInstrument();
-
 	void uninstallBinding();
+
+	void setCmdHandler(final CmdHandler cmdHandler);
 }

@@ -81,6 +81,7 @@ public abstract class InstrumentImpl<T extends WidgetBinding> implements Instrum
 	public void addBinding(final T binding) {
 		if(binding != null) {
 			bindings.add(binding);
+			binding.setCmdHandler(this);
 			binding.setActivated(isActivated());
 		}
 	}
@@ -120,14 +121,6 @@ public abstract class InstrumentImpl<T extends WidgetBinding> implements Instrum
 		}else {
 			bindings.forEach(binding -> binding.setActivated(toBeActivated));
 		}
-
-		interimFeedback();
-	}
-
-
-	@Override
-	public void interimFeedback() {
-		// Nothing to do
 	}
 
 

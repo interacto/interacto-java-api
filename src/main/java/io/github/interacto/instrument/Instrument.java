@@ -57,11 +57,5 @@ public interface Instrument<T extends WidgetBinding> extends Preferenciable, Mod
 	 */
 	void setActivated(final boolean activated);
 
-	/**
-	 * Reinitialises the interim feedback of the instrument.
-	 * Must be overridden.
-	 */
-	void interimFeedback();
-
 	void uninstallBindings();
 }
