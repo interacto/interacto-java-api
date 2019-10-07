@@ -67,13 +67,13 @@ public class TestWidgetBinding {
 
 	@Test
 	void testExecuteNope() {
-		Assertions.assertFalse(binding.isExecute());
+		Assertions.assertFalse(binding.isContinuousCmdExec());
 	}
 
 	@Test
 	void testExecuteOK() {
 		binding = new WidgetBindingStub(true, CommandImplStub::new, new InteractionStub());
-		Assertions.assertTrue(binding.isExecute());
+		Assertions.assertTrue(binding.isContinuousCmdExec());
 	}
 
 	@Test
@@ -135,12 +135,12 @@ public class TestWidgetBinding {
 		public boolean conditionRespected;
 		public boolean mustCancel;
 
-		public WidgetBindingStub(final boolean exec, final Supplier<CommandImplStub> cmdCreation, final InteractionStub interaction) {
-			this(exec, i -> cmdCreation.get(), interaction);
+		public WidgetBindingStub(final boolean continuous, final Supplier<CommandImplStub> cmdCreation, final InteractionStub interaction) {
+			this(continuous, i -> cmdCreation.get(), interaction);
 		}
 
-		public WidgetBindingStub(final boolean exec, final Function<InteractionData, CommandImplStub> cmdCreation, final InteractionStub interaction) {
-			super(exec, cmdCreation, interaction);
+		public WidgetBindingStub(final boolean continuous, final Function<InteractionData, CommandImplStub> cmdCreation, final InteractionStub interaction) {
+			super(continuous, cmdCreation, interaction);
 			conditionRespected = false;
 			mustCancel = false;
 		}

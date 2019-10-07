@@ -92,9 +92,9 @@ public interface WidgetBinding extends FSMHandler {
 	boolean isStrictStart();
 
 	/**
-	 * @return True if the command is executed on each evolution of the interaction.
+	 * @return True: the command must be executed on each step of the interaction.
 	 */
-	boolean isExecute();
+	boolean isContinuousCmdExec();
 
 	void uninstallBinding();
 
