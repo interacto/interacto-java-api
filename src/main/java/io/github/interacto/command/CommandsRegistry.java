@@ -115,7 +115,7 @@ public final class CommandsRegistry {
 	 * already added. Handlers are notified of the add of the given command. If Undoable, the cmd is
 	 * added to the undo collector as well.
 	 * @param cmd The command to add. If null, nothing is done.
-	 * @param cmdHandler The handler that produced or is associated to the command. If null, nothing is done.
+	 * @param cmdHandler The handler that produced or is associated to the command.
 	 */
 	public void addCommand(final Command cmd, final CmdHandler cmdHandler) {
 		synchronized(cmds) {

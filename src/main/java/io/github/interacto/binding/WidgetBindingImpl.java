@@ -14,10 +14,10 @@
  */
 package io.github.interacto.binding;
 
+import io.github.interacto.command.CmdHandler;
 import io.github.interacto.command.CommandImpl;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.fsm.CancelFSMException;
-import io.github.interacto.instrument.Instrument;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionImpl;
 import io.github.interacto.undo.Undoable;
@@ -30,10 +30,9 @@ import io.github.interacto.command.Command;
  * The base class to do widget bindings, i.e. bindings between user interactions and (undoable) commands.
  * @param <A> The type of the command that will produce this widget binding.
  * @param <I> The type of the interaction that will use this widget binding.
- * @param <N> The type of the instrument that will contain this widget binding.
  * @author Arnaud BLOUIN
  */
-public abstract class WidgetBindingImpl<A extends CommandImpl, I extends InteractionImpl<D, ?, ?>, N extends Instrument<?>, D extends InteractionData> implements WidgetBinding {
+public abstract class WidgetBindingImpl<A extends CommandImpl, I extends InteractionImpl<D, ?, ?>, D extends InteractionData> implements WidgetBinding {
 	private static Logger logger = Logger.getLogger(WidgetBinding.class.getName());
 
 	/**
@@ -52,14 +51,16 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	protected Logger loggerCmd;
 
+	protected boolean activated;
+
 	/** The source interaction. */
 	protected final I interaction;
 
 	/** The current command in progress. */
 	protected A cmd;
 
-	/** The instrument that contains the widget binding. */
-	protected final N instrument;
+	/** The possible command handler. May be null */
+	protected CmdHandler cmdHandler;
 
 	/** Specifies if the command must be execute or update * on each evolution of the interaction. */
 	protected final boolean execute;
@@ -73,25 +74,26 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	/**
 	 * Creates a widget binding. This constructor must initialise the interaction.
-	 * @param ins The instrument that contains the widget binding.
 	 * @param exec Specifies if the command must be execute or update on each evolution of the interaction.
 	 * @param cmdCreation The type of the command that will be created. Used to instantiate the cmd by reflexivity.
 	 * The class must be public and must have a constructor with no parameter.
 	 * @param interaction The user interaction of the binding.
 	 * @throws IllegalArgumentException If the given interaction or instrument is null.
 	 */
-	public WidgetBindingImpl(final N ins, final boolean exec, final Function<D, A> cmdCreation, final I interaction) {
+	public WidgetBindingImpl(final boolean exec, final Function<D, A> cmdCreation, final I interaction) {
 		super();
 
-		if(ins == null || cmdCreation == null || interaction == null) {
+		if(cmdCreation == null || interaction == null) {
 			throw new IllegalArgumentException();
 		}
 
 		cmdProducer = cmdCreation;
 		this.interaction = interaction;
 		cmd = null;
-		instrument = ins;
+		cmdHandler = null;
 		execute = exec;
+		activated = false;
+		this.interaction.setActivated(false);
 		this.interaction.getFsm().addHandler(this);
 		async = false;
 	}
@@ -129,7 +131,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	}
 
 	/**
-	 * Sets wether the command must be executed in a specific thread.
+	 * Sets whether the command must be executed in a specific thread.
 	 * @param asyncCmd True: the command will be executed asynchronously.
 	 */
 	public void setAsync(final boolean asyncCmd) {
@@ -144,15 +146,17 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	/**
 	 * creates the command of the widget binding. If the attribute 'cmd' is not null, nothing will be done.
-	 * @return The created command or null if problems occured.
+	 * @return The created command or null if problems occurred.
 	 */
-	protected A map() {
+	protected A createCommand() {
 		return cmdProducer.apply(interaction.getData());
 	}
 
 
 	@Override
-	public abstract void first();
+	public void first() {
+		// to override.
+	}
 
 
 	@Override
@@ -160,6 +164,20 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 		// to override.
 	}
 
+	@Override
+	public void end() {
+		// to override.
+	}
+
+	@Override
+	public void cancel() {
+		// to override.
+	}
+
+	@Override
+	public void endOrCancel() {
+		// to override.
+	}
 
 	@Override
 	public abstract boolean when();
@@ -179,7 +197,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	@Override
 	public boolean isActivated() {
-		return instrument.isActivated();
+		return activated;
 	}
 
 	@Override
@@ -212,7 +230,9 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 			unbindCmdAttributes();
 
 			// The instrument is notified about the cancel of the command.
-			instrument.onCmdCancelled(cmd);
+			if(cmdHandler != null) {
+				cmdHandler.onCmdCancelled(cmd);
+			}
 
 			if(isExecute() && cmd.hadEffect()) {
 				if(cmd instanceof Undoable) {
@@ -226,26 +246,30 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 			}
 
 			cmd = null;
-			instrument.interimFeedback();
+			cancel();
+			endOrCancel();
 		}
 	}
 
 
 	@Override
 	public void fsmStarts() throws CancelFSMException {
-		final boolean ok = cmd == null && isActivated() && when();
+		if(!isActivated()) {
+			return;
+		}
+
+		final boolean ok = when();
 
 		if(loggerBinding != null) {
 			loggerBinding.log(Level.INFO, "Starting binding: " + ok);
 		}
 
 		if(ok) {
-			cmd = map();
+			cmd = createCommand();
 			first();
 			if(loggerCmd != null) {
 				loggerCmd.log(Level.INFO, "Command created and init: " + cmd);
 			}
-			feedback();
 		}else {
 			if(isStrictStart()) {
 				if(loggerBinding != null) {
@@ -259,13 +283,17 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	@Override
 	public void fsmStops() {
+		if(!isActivated()) {
+			return;
+		}
+
 		final boolean ok = when();
 		if(loggerBinding != null) {
 			loggerBinding.log(Level.INFO, "Binding stops with condition: " + ok);
 		}
 		if(ok) {
 			if(cmd == null) {
-				cmd = map();
+				cmd = createCommand();
 				first();
 				if(loggerCmd != null) {
 					loggerCmd.log(Level.INFO, "Command created and init: " + cmd);
@@ -282,7 +310,6 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 			executeCmd(cmd, async);
 			unbindCmdAttributes();
 			cmd = null;
-			instrument.interimFeedback();
 		}else {
 			if(cmd != null) {
 				if(loggerCmd != null) {
@@ -290,9 +317,10 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 				}
 				cmd.cancel();
 				unbindCmdAttributes();
-				instrument.onCmdCancelled(cmd);
+				if(cmdHandler != null) {
+					cmdHandler.onCmdCancelled(cmd);
+				}
 				cmd = null;
-				instrument.interimFeedback();
 			}
 		}
 	}
@@ -314,9 +342,15 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 		}
 
 		if(ok) {
-			instrument.onCmdExecuted(cmd);
+			if(cmdHandler != null) {
+				cmdHandler.onCmdExecuted(cmd);
+			}
 			cmd.done();
-			instrument.onCmdDone(cmd);
+			end();
+			endOrCancel();
+			if(cmdHandler != null) {
+				cmdHandler.onCmdDone(cmd);
+			}
 		}
 
 		final boolean hadEffect = cmd.hadEffect();
@@ -326,8 +360,10 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 		}
 		if(hadEffect) {
 			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
-				CommandsRegistry.INSTANCE.addCommand(cmd, instrument);
-				instrument.onCmdAdded(cmd);
+				CommandsRegistry.INSTANCE.addCommand(cmd, cmdHandler);
+				if(cmdHandler != null) {
+					cmdHandler.onCmdAdded(cmd);
+				}
 			}else {
 				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
 			}
@@ -338,6 +374,10 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	@Override
 	public void fsmUpdates() {
+		if(!isActivated()) {
+			return;
+		}
+
 		final boolean ok = when();
 
 		if(loggerBinding != null) {
@@ -349,7 +389,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 				if(loggerCmd != null) {
 					loggerCmd.log(Level.INFO, "Command creation");
 				}
-				cmd = map();
+				cmd = createCommand();
 				first();
 			}
 
@@ -364,10 +404,10 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 					loggerCmd.log(Level.INFO, "Command execution");
 				}
 				cmd.doIt();
-				instrument.onCmdExecuted(cmd);
+				if(cmdHandler != null) {
+					cmdHandler.onCmdExecuted(cmd);
+				}
 			}
-
-			feedback();
 		}
 	}
 
@@ -385,27 +425,23 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 
 	@Override
-	public void feedback() {
-		//
-	}
+	public void setActivated(final boolean activated) {
+		this.activated = activated;
 
-
-	@Override
-	public void setActivated(final boolean activ) {
 		if(loggerBinding != null) {
-			loggerBinding.log(Level.INFO, "Binding Activated: " + activ);
+			loggerBinding.log(Level.INFO, "Binding Activated: " + activated);
 		}
 
-		interaction.setActivated(activ);
-		if(!activ && cmd != null) {
+		interaction.setActivated(activated);
+		if(!activated && cmd != null) {
+			unbindCmdAttributes();
 			cmd.flush();
 			cmd = null;
 		}
 	}
 
-
 	@Override
-	public N getInstrument() {
-		return instrument;
+	public void setCmdHandler(final CmdHandler cmdHandler) {
+		this.cmdHandler = cmdHandler;
 	}
 }

@@ -3,9 +3,13 @@ package io.github.interacto.interaction;
 import io.github.interacto.fsm.FSM;
 import io.github.interacto.fsm.OutputState;
 
-public class InteractionMock extends InteractionImpl<InteractionData, Object, FSM<Object>> {
-	public InteractionMock() {
+public class InteractionStub extends InteractionImpl<InteractionData, Object, FSM<Object>> {
+	public InteractionStub() {
 		super(new FSM<>());
+	}
+
+	public InteractionStub(final FSM<Object> fsm) {
+		super(fsm);
 	}
 
 	@Override
