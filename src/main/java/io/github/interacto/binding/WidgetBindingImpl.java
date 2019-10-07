@@ -62,8 +62,8 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	/** The possible command handler. May be null */
 	protected CmdHandler cmdHandler;
 
-	/** Specifies if the command must be execute or update * on each evolution of the interaction. */
-	protected final boolean execute;
+	/** Specifies whether the command must be executed on each step of the interaction. */
+	protected final boolean continuousCmdExec;
 
 	/** Defines whether the command must be executed in a specific thread. */
 	protected boolean async;
@@ -74,13 +74,13 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 	/**
 	 * Creates a widget binding. This constructor must initialise the interaction.
-	 * @param exec Specifies if the command must be execute or update on each evolution of the interaction.
+	 * @param continuousExecution Specifies whether the command must be executed on each step of the interaction.
 	 * @param cmdCreation The type of the command that will be created. Used to instantiate the cmd by reflexivity.
 	 * The class must be public and must have a constructor with no parameter.
 	 * @param interaction The user interaction of the binding.
 	 * @throws IllegalArgumentException If the given interaction or instrument is null.
 	 */
-	public WidgetBindingImpl(final boolean exec, final Function<D, A> cmdCreation, final I interaction) {
+	public WidgetBindingImpl(final boolean continuousExecution, final Function<D, A> cmdCreation, final I interaction) {
 		super();
 
 		if(cmdCreation == null || interaction == null) {
@@ -91,7 +91,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 		this.interaction = interaction;
 		cmd = null;
 		cmdHandler = null;
-		execute = exec;
+		continuousCmdExec = continuousExecution;
 		activated = false;
 		this.interaction.setActivated(false);
 		this.interaction.getFsm().addHandler(this);
@@ -234,7 +234,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 				cmdHandler.onCmdCancelled(cmd);
 			}
 
-			if(isExecute() && cmd.hadEffect()) {
+			if(isContinuousCmdExec() && cmd.hadEffect()) {
 				if(cmd instanceof Undoable) {
 					((Undoable) cmd).undo();
 					if(loggerCmd != null) {
@@ -300,7 +300,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 				}
 			}
 
-			if(!execute) {
+			if(!continuousCmdExec) {
 				then();
 				if(loggerCmd != null) {
 					loggerCmd.log(Level.INFO, "Command updated: " + cmd);
@@ -399,7 +399,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 			then();
 
-			if(execute && cmd.canDo()) {
+			if(continuousCmdExec && cmd.canDo()) {
 				if(loggerCmd != null) {
 					loggerCmd.log(Level.INFO, "Command execution");
 				}
@@ -419,8 +419,8 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	}
 
 	@Override
-	public boolean isExecute() {
-		return execute;
+	public boolean isContinuousCmdExec() {
+		return continuousCmdExec;
 	}
 
 
