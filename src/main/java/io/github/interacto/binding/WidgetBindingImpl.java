@@ -15,7 +15,7 @@
 package io.github.interacto.binding;
 
 import io.github.interacto.command.CmdHandler;
-import io.github.interacto.command.CommandImpl;
+import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.interaction.InteractionData;
@@ -24,15 +24,14 @@ import io.github.interacto.undo.Undoable;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import io.github.interacto.command.Command;
 
 /**
  * The base class to do widget bindings, i.e. bindings between user interactions and (undoable) commands.
- * @param <A> The type of the command that will produce this widget binding.
+ * @param <C> The type of the command that will produce this widget binding.
  * @param <I> The type of the interaction that will use this widget binding.
  * @author Arnaud BLOUIN
  */
-public abstract class WidgetBindingImpl<A extends CommandImpl, I extends InteractionImpl<D, ?, ?>, D extends InteractionData> implements WidgetBinding {
+public abstract class WidgetBindingImpl<C extends Command, I extends InteractionImpl<D, ?, ?>, D extends InteractionData> implements WidgetBinding {
 	private static Logger logger = Logger.getLogger(WidgetBinding.class.getName());
 
 	/**
@@ -57,7 +56,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	protected final I interaction;
 
 	/** The current command in progress. */
-	protected A cmd;
+	protected C cmd;
 
 	/** The possible command handler. May be null */
 	protected CmdHandler cmdHandler;
@@ -69,7 +68,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	protected boolean async;
 
 	/** A function that produces commands. */
-	protected final Function<D, A> cmdProducer;
+	protected final Function<D, C> cmdProducer;
 
 
 	/**
@@ -80,7 +79,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	 * @param interaction The user interaction of the binding.
 	 * @throws IllegalArgumentException If the given interaction or instrument is null.
 	 */
-	public WidgetBindingImpl(final boolean continuousExecution, final Function<D, A> cmdCreation, final I interaction) {
+	public WidgetBindingImpl(final boolean continuousExecution, final Function<D, C> cmdCreation, final I interaction) {
 		super();
 
 		if(cmdCreation == null || interaction == null) {
@@ -148,7 +147,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 	 * creates the command of the widget binding. If the attribute 'cmd' is not null, nothing will be done.
 	 * @return The created command or null if problems occurred.
 	 */
-	protected A createCommand() {
+	protected C createCommand() {
 		return cmdProducer.apply(interaction.getData());
 	}
 
@@ -190,7 +189,7 @@ public abstract class WidgetBindingImpl<A extends CommandImpl, I extends Interac
 
 
 	@Override
-	public A getCommand() {
+	public C getCommand() {
 		return cmd;
 	}
 
