@@ -1,5 +1,6 @@
 package io.github.interacto.command;
 
+import io.github.interacto.undo.UndoCollector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,6 +32,33 @@ public class TestCommand {
 	void setUp() {
 		cmd = getCmdCanDo();
 		CommandsRegistry.INSTANCE.removeAllHandlers();
+		CommandsRegistry.INSTANCE.clear();
+		UndoCollector.INSTANCE.clear();
+		UndoCollector.INSTANCE.clearHandlers();
+	}
+
+	@Test
+	void testExecuteAndFlushNull() {
+		Command.executeAndFlush(null);
+		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+	}
+
+	@Test
+	void testExecuteAndFlushCannotDo() {
+		cmd = Mockito.mock(Command.class);
+		Mockito.when(cmd.canDo()).thenReturn(false);
+		Command.executeAndFlush(cmd);
+		Mockito.verify(cmd, Mockito.never()).doIt();
+		Mockito.verify(cmd, Mockito.times(1)).flush();
+	}
+
+	@Test
+	void testExecuteAndFlushCanDo() {
+		cmd = Mockito.mock(Command.class);
+		Mockito.when(cmd.canDo()).thenReturn(true);
+		Command.executeAndFlush(cmd);
+		Mockito.verify(cmd, Mockito.times(1)).doIt();
+		Mockito.verify(cmd, Mockito.times(1)).flush();
 	}
 
 	@Test

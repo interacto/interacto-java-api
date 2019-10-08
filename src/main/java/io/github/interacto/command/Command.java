@@ -25,6 +25,20 @@ import java.util.List;
  */
 public interface Command {
 	/**
+	 * Execute if possible (canDo) the given command (if not null) and flush it.
+	 * @param cmd The command to execute. Nothing done if null.
+	 */
+	static void executeAndFlush(final Command cmd) {
+		if(cmd == null) {
+			return;
+		}
+		if(cmd.canDo()) {
+			cmd.doIt();
+		}
+		cmd.flush();
+	}
+
+	/**
 	 * Flushes the command.
 	 * Can be useful to close streams, free objects, etc.
 	 * A command should flushed manually only when it is not managed by the cmd registry of the application.
