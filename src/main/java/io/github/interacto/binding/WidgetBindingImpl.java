@@ -365,7 +365,6 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			}else {
 				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
 			}
-			cmd.followingCmds().forEach(cmdFollow -> executeCmd(cmdFollow, false));
 		}
 	}
 

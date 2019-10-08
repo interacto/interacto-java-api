@@ -14,9 +14,6 @@
  */
 package io.github.interacto.command;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Base implementation of the Command interface.
  * @author Arnaud BLOUIN
@@ -129,11 +126,5 @@ public abstract class CommandImpl implements Command {
 	@Override
 	public CmdStatus getStatus() {
 		return status;
-	}
-
-
-	@Override
-	public List<Command> followingCmds() {
-		return Collections.emptyList();
 	}
 }

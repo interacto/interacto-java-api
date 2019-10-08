@@ -14,8 +14,6 @@
  */
 package io.github.interacto.command;
 
-import java.util.List;
-
 /**
  * A command is produced and executed in reaction of a user interaction.
  * It follows the command design pattern.
@@ -104,16 +102,6 @@ public interface Command {
 	 * @since 0.2
 	 */
 	CmdStatus getStatus();
-
-	/**
-	 * The execution of the command may provoke the execution of other commands.
-	 * For instance with a drawing editor, one may want that after having pasted shapes, the new shapes must be selected.
-	 * So, the command PasteShapes will be followed by a command SelectShapes.
-	 * This is the goal of the operation.
-	 * This operation creates and initialises the command that will be executed after each final execution of the current cmd.
-	 * @return A list of commands that must be executed afterward. Cannot be null.
-	 */
-	List<Command> followingCmds();
 
 	/**
 	 * Defines the registration policy of the command.
