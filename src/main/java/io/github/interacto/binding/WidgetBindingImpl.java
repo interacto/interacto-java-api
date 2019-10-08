@@ -72,7 +72,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 
 	/**
-	 * Creates a widget binding. This constructor must initialise the interaction.
+	 * Creates a widget binding.
 	 * @param continuousExecution Specifies whether the command must be executed on each step of the interaction.
 	 * @param cmdCreation The type of the command that will be created. Used to instantiate the cmd by reflexivity.
 	 * The class must be public and must have a constructor with no parameter.
@@ -91,8 +91,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		cmd = null;
 		cmdHandler = null;
 		continuousCmdExec = continuousExecution;
-		activated = false;
-		this.interaction.setActivated(false);
+		activated = true;
 		this.interaction.getFsm().addHandler(this);
 		async = false;
 	}
