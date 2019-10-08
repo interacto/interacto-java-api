@@ -54,6 +54,21 @@ public interface WidgetBinding extends FSMHandler {
 	 */
 	void endOrCancel();
 
+	/**
+	 * Called when an executed command did not had effect
+	 */
+	void ifCmdHadNoEffect();
+
+	/**
+	 * Called when an executed command had effects
+	 */
+	void ifCmdHadEffects();
+
+	/**
+	 * Called when an ongoing command cannot be executed
+	 */
+	void ifCannotExecuteCmd();
+
 
 	/**
 	 * @return True if the condition of the widget binding is respected.

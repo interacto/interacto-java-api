@@ -178,6 +178,21 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	}
 
 	@Override
+	public void ifCmdHadNoEffect() {
+		// to override.
+	}
+
+	@Override
+	public void ifCmdHadEffects() {
+		// to override.
+	}
+
+	@Override
+	public void ifCannotExecuteCmd() {
+		// to override.
+	}
+
+	@Override
 	public abstract boolean when();
 
 
@@ -280,24 +295,55 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 
 	@Override
+	public void fsmUpdates() {
+		if(!isActivated()) {
+			return;
+		}
+
+		if(loggerBinding != null) {
+			loggerBinding.log(Level.INFO, "Binding updates");
+		}
+
+		if(createAndInitCommand()) {
+			if(loggerCmd != null) {
+				loggerCmd.log(Level.INFO, "Command update");
+			}
+
+			then();
+
+			if(continuousCmdExec) {
+				if(loggerCmd != null) {
+					loggerCmd.log(Level.INFO, "Try to execute command (continuous execution)");
+				}
+				final boolean ok = cmd.doIt();
+
+				if(loggerCmd != null) {
+					loggerCmd.log(Level.INFO, "Continuous command execution had this result: " + ok);
+				}
+
+				if(!ok) {
+					ifCannotExecuteCmd();
+				}
+
+				if(ok && cmdHandler != null) {
+					cmdHandler.onCmdExecuted(cmd);
+				}
+			}
+		}
+	}
+
+
+	@Override
 	public void fsmStops() {
 		if(!isActivated()) {
 			return;
 		}
 
-		final boolean ok = when();
 		if(loggerBinding != null) {
-			loggerBinding.log(Level.INFO, "Binding stops with condition: " + ok);
+			loggerBinding.log(Level.INFO, "Binding stops");
 		}
-		if(ok) {
-			if(cmd == null) {
-				cmd = createCommand();
-				first();
-				if(loggerCmd != null) {
-					loggerCmd.log(Level.INFO, "Command created and init: " + cmd);
-				}
-			}
 
+		if(createAndInitCommand()) {
 			if(!continuousCmdExec) {
 				then();
 				if(loggerCmd != null) {
@@ -324,61 +370,11 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	}
 
 
-	private void executeCmd(final Command cmd, final boolean async) {
-		if(async) {
-			executeCmdAsync(cmd);
-		}else {
-			afterCmdExecuted(cmd, cmd.doIt());
-		}
-	}
-
-	protected abstract void executeCmdAsync(final Command cmd);
-
-	protected void afterCmdExecuted(final Command cmd, final boolean ok) {
-		if(loggerCmd != null) {
-			loggerCmd.log(Level.INFO, "Command execution did it: " + ok);
-		}
-
-		if(ok) {
-			if(cmdHandler != null) {
-				cmdHandler.onCmdExecuted(cmd);
-			}
-			cmd.done();
-			end();
-			endOrCancel();
-			if(cmdHandler != null) {
-				cmdHandler.onCmdDone(cmd);
-			}
-		}
-
-		final boolean hadEffect = cmd.hadEffect();
-
-		if(loggerCmd != null) {
-			loggerCmd.log(Level.INFO, "Command execution had effect: " + hadEffect);
-		}
-		if(hadEffect) {
-			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
-				CommandsRegistry.INSTANCE.addCommand(cmd, cmdHandler);
-				if(cmdHandler != null) {
-					cmdHandler.onCmdAdded(cmd);
-				}
-			}else {
-				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
-			}
-		}
-	}
-
-
-	@Override
-	public void fsmUpdates() {
-		if(!isActivated()) {
-			return;
-		}
-
+	protected boolean createAndInitCommand() {
 		final boolean ok = when();
 
 		if(loggerBinding != null) {
-			loggerBinding.log(Level.INFO, "Binding updates with condition: " + ok);
+			loggerBinding.log(Level.INFO, "when predicate is {}", ok);
 		}
 
 		if(ok) {
@@ -389,24 +385,70 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 				cmd = createCommand();
 				first();
 			}
+		}
 
-			if(loggerCmd != null) {
-				loggerCmd.log(Level.INFO, "Command update");
-			}
+		return ok;
+	}
 
-			then();
 
-			if(continuousCmdExec && cmd.canDo()) {
-				if(loggerCmd != null) {
-					loggerCmd.log(Level.INFO, "Command execution");
-				}
-				cmd.doIt();
-				if(cmdHandler != null) {
-					cmdHandler.onCmdExecuted(cmd);
-				}
-			}
+	private void executeCmd(final Command cmd, final boolean async) {
+		if(async) {
+			executeCmdAsync(cmd);
+		}else {
+			afterCmdExecuted(cmd, cmd.doIt());
 		}
 	}
+
+	protected abstract void executeCmdAsync(final Command cmd);
+
+
+	protected void afterCmdExecuted(final Command cmd, final boolean ok) {
+		if(loggerCmd != null) {
+			loggerCmd.log(Level.INFO, "Command execution had this result: " + ok);
+		}
+
+		if(ok) {
+			if(cmdHandler != null) {
+				cmdHandler.onCmdExecuted(cmd);
+			}
+			end();
+			endOrCancel();
+		}else {
+			ifCannotExecuteCmd();
+		}
+
+		// In continuous mode, a command may have been executed in the update routine
+		if(cmd.getStatus() != Command.CmdStatus.EXECUTED) {
+			return;
+		}
+
+		// For commands executed at least one time
+		cmd.done();
+		if(cmdHandler != null) {
+			cmdHandler.onCmdDone(cmd);
+		}
+
+		final boolean hadEffect = cmd.hadEffect();
+
+		if(loggerCmd != null) {
+			loggerCmd.log(Level.INFO, "Command execution had effect: " + hadEffect);
+		}
+
+		if(hadEffect) {
+			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
+				CommandsRegistry.INSTANCE.addCommand(cmd, cmdHandler);
+				if(cmdHandler != null) {
+					cmdHandler.onCmdAdded(cmd);
+				}
+			}else {
+				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
+			}
+			ifCmdHadEffects();
+		}else {
+			ifCmdHadNoEffect();
+		}
+	}
+
 
 	@Override
 	public void uninstallBinding() {
