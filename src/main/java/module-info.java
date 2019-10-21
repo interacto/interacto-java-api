@@ -13,5 +13,4 @@ module interacto.java.api {
 	exports io.github.interacto.logging;
 	exports io.github.interacto.properties;
 	exports io.github.interacto.undo;
-	exports io.github.interacto.utils;
 }

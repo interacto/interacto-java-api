@@ -31,10 +31,8 @@ public class TestCommand {
 	@BeforeEach
 	void setUp() {
 		cmd = getCmdCanDo();
-		CommandsRegistry.INSTANCE.removeAllHandlers();
 		CommandsRegistry.INSTANCE.clear();
 		UndoCollector.INSTANCE.clear();
-		UndoCollector.INSTANCE.clearHandlers();
 	}
 
 	@Test
@@ -110,15 +108,6 @@ public class TestCommand {
 	}
 
 	@Test
-	void testNotifiedOnCommandExecuted() {
-		CmdHandler handler = Mockito.mock(CmdHandler.class);
-		CommandsRegistry.INSTANCE.addHandler(handler);
-		final Command cmd = getCmdCanDo();
-		cmd.doIt();
-		Mockito.verify(handler, Mockito.times(1)).onCmdExecuted(cmd);
-	}
-
-	@Test
 	void testCommandHadEffectWhenDone() {
 		cmd.done();
 		assertTrue(cmd.hadEffect());
@@ -174,34 +163,18 @@ public class TestCommand {
 	}
 
 	@Test
-	void testCommandNotDoneWhenDone() {
-		final CmdHandler handler = Mockito.mock(CmdHandler.class);
-		cmd.done();
-		// Cannot visit CommandDone if already done.
-		CommandsRegistry.INSTANCE.addHandler(handler);
-		cmd.done();
-		Mockito.verify(handler, Mockito.never()).onCmdDone(cmd);
-	}
-
-	@Test
 	void testCommandDoneWhenCreated() {
-		final CmdHandler handler = Mockito.mock(CmdHandler.class);
-		CommandsRegistry.INSTANCE.addHandler(handler);
 		cmd.done();
 		assertEquals(Command.CmdStatus.DONE, cmd.getStatus());
-		Mockito.verify(handler, Mockito.times(1)).onCmdDone(cmd);
 	}
 
 
 	@Test
 	void testCommandDoneWhenExecuted() {
-		final CmdHandler handler = Mockito.mock(CmdHandler.class);
 		final Command cmd = getCmdCanDo();
 		cmd.doIt();
-		CommandsRegistry.INSTANCE.addHandler(handler);
 		cmd.done();
 		assertEquals(Command.CmdStatus.DONE, cmd.getStatus());
-		Mockito.verify(handler, Mockito.times(1)).onCmdDone(cmd);
 	}
 
 

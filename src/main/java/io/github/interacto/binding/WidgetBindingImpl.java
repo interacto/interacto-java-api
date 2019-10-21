@@ -419,7 +419,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 		if(hadEffect) {
 			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
-				CommandsRegistry.INSTANCE.addCommand(cmd, null);
+				CommandsRegistry.INSTANCE.addCommand(cmd);
 			}else {
 				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
 			}

@@ -93,7 +93,7 @@ public class TestFSM {
 
 		@Test
 		void testcurrentStateProp() {
-			assertNotNull(fsm.currentStateProp());
+			assertNotNull(fsm.currentStatePublisher);
 		}
 
 		@Test
@@ -111,7 +111,7 @@ public class TestFSM {
 		@Test
 		void testGetterCurrentState() {
 			fsm.process(new StubEvent());
-			assertEquals(fsm.currentState.get(), fsm.getCurrentState());
+			assertEquals(fsm.currentState, fsm.getCurrentState());
 		}
 
 		@Test
