@@ -19,14 +19,12 @@ import io.github.interacto.undo.Undoable;
 import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * A register of commands.
  * This is a singleton. It automatically collects the executed commands when the command is executed by an instrument.
  * The register has a limited size that can be changed.
- * It can notify handler about changes in the registry.
  * @author Arnaud Blouin
  */
 public final class CommandsRegistry {
@@ -34,8 +32,6 @@ public final class CommandsRegistry {
 	public static final CommandsRegistry INSTANCE = new CommandsRegistry();
 	/** The saved commands. */
 	private final List<Command> cmds;
-	/** The commands handler. */
-	private final List<CmdHandler> handlers;
 	/** The max number of cleanable commands (cf. Command::getRegistrationPolicy) that can contain the register. */
 	private int sizeMax;
 	private final PublishSubject<Command> cmdPublisher;
@@ -47,7 +43,6 @@ public final class CommandsRegistry {
 	private CommandsRegistry() {
 		super();
 		cmds = new ArrayList<>();
-		handlers = new ArrayList<>();
 		sizeMax = 50;
 		cmdPublisher = PublishSubject.create();
 	}
@@ -55,35 +50,6 @@ public final class CommandsRegistry {
 	/** An RX observable objects that will provide the commands produced by the binding. */
 	public Observable<Command> commands() {
 		return cmdPublisher;
-	}
-
-	public List<CmdHandler> getHandlers() {
-		return Collections.unmodifiableList(handlers);
-	}
-
-	/**
-	 * Notifies handler that a command has been executed.
-	 * @param cmd The executed command.
-	 */
-	public void onCmdExecuted(final Command cmd) {
-		if(cmd != null) {
-			synchronized(handlers) {
-				handlers.forEach(handler -> handler.onCmdExecuted(cmd));
-			}
-		}
-	}
-
-
-	/**
-	 * Notifies handler that a command ends.
-	 * @param cmd The ending command.
-	 */
-	public void onCmdDone(final Command cmd) {
-		if(cmd != null) {
-			synchronized(handlers) {
-				handlers.forEach(handler -> handler.onCmdDone(cmd));
-			}
-		}
 	}
 
 
@@ -124,9 +90,8 @@ public final class CommandsRegistry {
 	 * already added. Handlers are notified of the add of the given command. If Undoable, the cmd is
 	 * added to the undo collector as well.
 	 * @param cmd The command to add. If null, nothing is done.
-	 * @param cmdHandler The handler that produced or is associated to the command.
 	 */
-	public void addCommand(final Command cmd, final CmdHandler cmdHandler) {
+	public void addCommand(final Command cmd) {
 		synchronized(cmds) {
 			if(cmd != null && !cmds.contains(cmd) &&
 				(sizeMax > 0 || cmd.getRegistrationPolicy() == Command.RegistrationPolicy.UNLIMITED)) {
@@ -144,12 +109,8 @@ public final class CommandsRegistry {
 				cmds.add(cmd);
 				cmdPublisher.onNext(cmd);
 
-				synchronized(handlers) {
-					handlers.forEach(handler -> handler.onCmdAdded(cmd));
-				}
-
 				if(cmd instanceof Undoable) {
-					UndoCollector.INSTANCE.add((Undoable) cmd, cmdHandler);
+					UndoCollector.INSTANCE.add((Undoable) cmd);
 				}
 			}
 		}
@@ -166,42 +127,6 @@ public final class CommandsRegistry {
 				cmds.remove(cmd);
 			}
 			cmd.flush();
-		}
-	}
-
-
-	/**
-	 * Adds a command handler.
-	 * @param handler The handler to add.
-	 */
-	public void addHandler(final CmdHandler handler) {
-		if(handler != null) {
-			synchronized(handlers) {
-				handlers.add(handler);
-			}
-		}
-	}
-
-
-	/**
-	 * Removes the given handler.
-	 * @param handler The handler to remove.
-	 */
-	public void removeHandler(final CmdHandler handler) {
-		if(handler != null) {
-			synchronized(handlers) {
-				handlers.remove(handler);
-			}
-		}
-	}
-
-
-	/**
-	 * Removes all the command handler.
-	 */
-	public void removeAllHandlers() {
-		synchronized(handlers) {
-			handlers.clear();
 		}
 	}
 
@@ -227,9 +152,6 @@ public final class CommandsRegistry {
 			cmd.cancel();
 			synchronized(cmds) {
 				cmds.remove(cmd);
-			}
-			synchronized(handlers) {
-				handlers.forEach(handler -> handler.onCmdCancelled(cmd));
 			}
 			cmd.flush();
 		}

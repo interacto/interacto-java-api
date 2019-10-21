@@ -59,7 +59,6 @@ public abstract class CommandImpl implements Command {
 			ok = true;
 			doCmdBody();
 			status = CmdStatus.EXECUTED;
-			CommandsRegistry.INSTANCE.onCmdExecuted(this);
 		}else {
 			ok = false;
 		}
@@ -100,7 +99,6 @@ public abstract class CommandImpl implements Command {
 	public void done() {
 		if(status == CmdStatus.CREATED || status == CmdStatus.EXECUTED) {
 			status = CmdStatus.DONE;
-			CommandsRegistry.INSTANCE.onCmdDone(this);
 		}
 	}
 

@@ -17,6 +17,7 @@ package io.github.interacto.interaction;
 import io.github.interacto.fsm.FSM;
 import io.github.interacto.fsm.InitState;
 import io.github.interacto.fsm.OutputState;
+import io.reactivex.disposables.Disposable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -48,6 +49,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	/** The current throttle thread in progress. */
 	private Future<?> currThrottleTimeoutFuture;
 	private ExecutorService executor;
+	private final Disposable disposable;
 
 	protected InteractionImpl(final F fsm) {
 		super();
@@ -60,7 +62,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		currThrottleTimeoutFuture = null;
 		throttleTimeout = 0L;
 		this.fsm = fsm;
-		fsm.currentStateProp().obs((oldValue, newValue) -> updateEventsRegistered(newValue, oldValue));
+		disposable = fsm.currentState().subscribe(current -> updateEventsRegistered(current.getValue(), current.getKey()));
 		activated = true;
 		throttleCounter = new AtomicLong();
 		currentThrottledEvent = null;
@@ -211,6 +213,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected abstract void reinitData();
 
 	public void uninstall() {
+		disposable.dispose();
 		setActivated(false);
 		logger = null;
 		if(executor != null) {

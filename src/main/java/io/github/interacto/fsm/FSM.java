@@ -14,11 +14,14 @@
  */
 package io.github.interacto.fsm;
 
-import io.github.interacto.utils.ObsValue;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +41,8 @@ public class FSM<E> {
 	/** Goes with 'startingState'. It permits to know whether the FSM has started, ie whether the 'starting state' has been reached. */
 	protected boolean started;
 	protected final InitState<E> initState;
-	protected final ObsValue<OutputState<E>> currentState;
+	protected OutputState<E> currentState;
+	protected final PublishSubject<Map.Entry<OutputState<E>, OutputState<E>>> currentStatePublisher;
 	/** The states that compose the finite state machine. */
 	protected final Set<State<E>> states;
 	/** The handler that want to be notified when the state machine of the interaction changed. */
@@ -61,13 +65,18 @@ public class FSM<E> {
 		states = new HashSet<>();
 		states.add(initState);
 		startingState = initState;
-		currentState = new ObsValue<>(initState);
+		currentState = initState;
+		currentStatePublisher = PublishSubject.create();
 		inner = false;
 		handlers = new HashSet<>(2);
 	}
 
 	public OutputState<E> getCurrentState() {
-		return currentState.get();
+		return currentState;
+	}
+
+	public Observable<Map.Entry<OutputState<E>, OutputState<E>>> currentState() {
+		return currentStatePublisher;
 	}
 
 	public void setInner(final boolean inner) {
@@ -81,7 +90,7 @@ public class FSM<E> {
 		if(currentSubFSM != null) {
 			return currentSubFSM.process(event);
 		}
-		return currentState.get().process(event);
+		return currentState.process(event);
 	}
 
 	protected void enterStdState(final StdState<E> state) throws CancelFSMException {
@@ -97,7 +106,9 @@ public class FSM<E> {
 	}
 
 	protected void setCurrentState(final OutputState<E> state) {
-		currentState.set(state);
+		final var old = currentState;
+		currentState = state;
+		currentStatePublisher.onNext(Map.entry(old, currentState));
 	}
 
 	/**
@@ -220,7 +231,7 @@ public class FSM<E> {
 		}
 
 		started = false;
-		currentState.set(initState);
+		setCurrentState(initState);
 		currentTimeout = null;
 
 		if(currentSubFSM != null) {
@@ -254,10 +265,12 @@ public class FSM<E> {
 			}
 
 			try {
-				currentTimeout.execute(null).filter(state -> state instanceof OutputState<?>).ifPresent(state -> {
-					currentState.set((OutputState<E>) state);
+				final Optional<InputState<E>> nextState = currentTimeout.execute(null).filter(state -> state instanceof OutputState<?>);
+
+				if(nextState.isPresent()) {
+					setCurrentState((OutputState<E>) nextState.get());
 					checkTimeoutTransition();
-				});
+				}
 			}catch(final CancelFSMException ignored) {
 				// Already processed
 			}
@@ -283,7 +296,7 @@ public class FSM<E> {
 	 * If it is the case, the timeout transition is launched.
 	 */
 	protected void checkTimeoutTransition() {
-		currentState.get().getTransitions().stream().filter(tr -> tr instanceof TimeoutTransition).findFirst().map(tr -> (TimeoutTransition<E>) tr).ifPresent(tr -> {
+		currentState.getTransitions().stream().filter(tr -> tr instanceof TimeoutTransition).findFirst().map(tr -> (TimeoutTransition<E>) tr).ifPresent(tr -> {
 			if(logger != null) {
 				logger.log(Level.INFO, "Timeout starting");
 			}
@@ -358,15 +371,10 @@ public class FSM<E> {
 		return Collections.unmodifiableSet(states);
 	}
 
-	public ObsValue<OutputState<E>> currentStateProp() {
-		return currentState;
-	}
-
 	public void uninstall() {
 		fullReinit();
 		logger = null;
-		currentState.unobsAll();
-		currentState.set(null);
+		currentStatePublisher.onComplete();
 		startingState = null;
 		currentSubFSM = null;
 		states.forEach(state -> state.uninstall());
