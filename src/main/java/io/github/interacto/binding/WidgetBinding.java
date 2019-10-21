@@ -14,16 +14,16 @@
  */
 package io.github.interacto.binding;
 
-import io.github.interacto.command.CmdHandler;
 import io.github.interacto.command.Command;
 import io.github.interacto.fsm.FSMHandler;
 import io.github.interacto.interaction.InteractionImpl;
+import io.reactivex.Observable;
 
 /**
  * The concept of widget binding and its related services.
  * @author Arnaud BLOUIN
  */
-public interface WidgetBinding extends FSMHandler {
+public interface WidgetBinding<C extends Command> extends FSMHandler {
 	/**
 	 * Stops the interaction and clears all its events waiting for a process.
 	 */
@@ -83,7 +83,7 @@ public interface WidgetBinding extends FSMHandler {
 	/**
 	 * @return The command in progress or null.
 	 */
-	Command getCommand();
+	C getCommand();
 
 	/**
 	 * @return True if the widget binding is activated.
@@ -111,7 +111,9 @@ public interface WidgetBinding extends FSMHandler {
 	 */
 	boolean isContinuousCmdExec();
 
+	/** Uninstall the binding. The binding cannot be used after that. */
 	void uninstallBinding();
 
-	void setCmdHandler(final CmdHandler cmdHandler);
+	/** An RX observable objects that will provide the commands produced by the binding. */
+	Observable<C> produces();
 }

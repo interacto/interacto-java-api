@@ -1,6 +1,5 @@
 package io.github.interacto.binding;
 
-import io.github.interacto.command.CmdHandler;
 import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandImpl;
 import io.github.interacto.command.CommandsRegistry;
@@ -10,20 +9,22 @@ import io.github.interacto.fsm.TerminalState;
 import io.github.interacto.fsm.Transition;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionStub;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestWidgetBindingIntegration {
 	InteractionStub interaction;
 	WidgetBindingImpl<CommandImplStub, InteractionStub, InteractionData> binding;
-	CmdHandler cmdHandler;
 	FSM<Object> fsm;
 	CommandImplStub cmd;
 	AtomicBoolean whenValue;
@@ -38,7 +39,6 @@ public class TestWidgetBindingIntegration {
 		cannotExec = 0;
 		whenValue = new AtomicBoolean(true);
 		cmd = new CommandImplStub();
-		cmdHandler = Mockito.mock(CmdHandler.class);
 		fsm = new OneTrFSM();
 		interaction = new InteractionStub(fsm);
 	}
@@ -78,7 +78,6 @@ public class TestWidgetBindingIntegration {
 				protected void executeCmdAsync(final Command cmd) {
 				}
 			};
-			binding.setCmdHandler(cmdHandler);
 			binding.setActivated(true);
 			binding.logBinding(true);
 			binding.logCmd(true);
@@ -89,9 +88,6 @@ public class TestWidgetBindingIntegration {
 		void testNothingDoneIsDeactivated() {
 			binding.setActivated(false);
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdDone(cmd);
 			assertEquals(0, cmd.executed);
 			assertEquals(0, effects);
 			assertEquals(0, noEffect);
@@ -102,9 +98,6 @@ public class TestWidgetBindingIntegration {
 		@Test
 		void testCmdCreatedExecSavedWhenActivated() {
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdDone(cmd);
 			assertEquals(1, cmd.executed);
 			assertEquals(1, effects);
 			assertEquals(0, noEffect);
@@ -116,9 +109,6 @@ public class TestWidgetBindingIntegration {
 		void testCmdKOWhenNotWhenOK() {
 			whenValue.set(false);
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdDone(cmd);
 			assertEquals(0, cmd.executed);
 			assertEquals(0, effects);
 			assertEquals(0, noEffect);
@@ -130,9 +120,6 @@ public class TestWidgetBindingIntegration {
 		void testCmdKOWhenCannotDoCmd() {
 			cmd.can = false;
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdDone(cmd);
 			assertEquals(0, cmd.executed);
 			assertEquals(0, effects);
 			assertEquals(0, noEffect);
@@ -144,13 +131,38 @@ public class TestWidgetBindingIntegration {
 			cmd.can = true;
 			cmd.effects = false;
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdDone(cmd);
 			assertEquals(1, cmd.executed);
 			assertEquals(0, effects);
 			assertEquals(1, noEffect);
 			assertEquals(0, cannotExec);
+		}
+
+		@Test
+		void testProducedNone() {
+			cmd.can = false;
+			final List<CommandImplStub> cmds = new ArrayList<>();
+			binding.produces().subscribe(cmds::add);
+			fsm.process(new EventStub1());
+			assertTrue(cmds.isEmpty());
+		}
+
+		@Test
+		void testProducedOne() {
+			final List<CommandImplStub> cmds = new ArrayList<>();
+			binding.produces().subscribe(cmds::add);
+			fsm.process(new EventStub1());
+			assertEquals(1, cmds.size());
+		}
+
+		@Test
+		void testProducedTwo() {
+			final List<CommandImplStub> cmds = new ArrayList<>();
+			binding.produces().subscribe(cmds::add);
+			fsm.process(new EventStub1());
+			cmd = new CommandImplStub();
+			fsm.process(new EventStub1());
+			assertEquals(2, cmds.size());
+			assertNotSame(cmds.get(0), cmds.get(1));
 		}
 	}
 
@@ -168,13 +180,24 @@ public class TestWidgetBindingIntegration {
 					return whenValue.get();
 				}
 				@Override
+				public void ifCmdHadNoEffect() {
+					noEffect++;
+				}
+				@Override
+				public void ifCmdHadEffects() {
+					effects++;
+				}
+				@Override
+				public void ifCannotExecuteCmd() {
+					cannotExec++;
+				}
+				@Override
 				protected void unbindCmdAttributes() {
 				}
 				@Override
 				protected void executeCmdAsync(final Command cmd) {
 				}
 			};
-			binding.setCmdHandler(cmdHandler);
 			binding.setActivated(true);
 		}
 
@@ -182,18 +205,18 @@ public class TestWidgetBindingIntegration {
 		void testNothingDoneIsDeactivated() {
 			binding.setActivated(false);
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdDone(cmd);
+			assertEquals(0, effects);
+			assertEquals(0, noEffect);
+			assertEquals(0, cannotExec);
 			assertEquals(0, cmd.executed);
 		}
 
 		@Test
 		void testCmdCreatedExecSavedWhenActivated() {
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.times(1)).onCmdDone(cmd);
+			assertEquals(1, effects);
+			assertEquals(0, noEffect);
+			assertEquals(0, cannotExec);
 			assertEquals(1, cmd.executed);
 		}
 
@@ -201,10 +224,10 @@ public class TestWidgetBindingIntegration {
 		void testCmdKOWhenNotWhenOK() {
 			whenValue.set(false);
 			fsm.process(new EventStub1());
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdAdded(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdExecuted(cmd);
-			Mockito.verify(cmdHandler, Mockito.never()).onCmdDone(cmd);
 			assertEquals(0, cmd.executed);
+			assertEquals(0, effects);
+			assertEquals(0, noEffect);
+			assertEquals(0, cannotExec);
 		}
 	}
 

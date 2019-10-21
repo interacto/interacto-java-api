@@ -1,6 +1,7 @@
 module interacto.java.api {
 	requires java.logging;
 	requires java.desktop;
+	requires io.reactivex.rxjava2;
 
 	exports io.github.interacto.binding;
 	exports io.github.interacto.command;

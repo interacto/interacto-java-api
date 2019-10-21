@@ -14,13 +14,14 @@
  */
 package io.github.interacto.binding;
 
-import io.github.interacto.command.CmdHandler;
 import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionImpl;
 import io.github.interacto.undo.Undoable;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +32,7 @@ import java.util.logging.Logger;
  * @param <I> The type of the interaction that will use this widget binding.
  * @author Arnaud BLOUIN
  */
-public abstract class WidgetBindingImpl<C extends Command, I extends InteractionImpl<D, ?, ?>, D extends InteractionData> implements WidgetBinding {
+public abstract class WidgetBindingImpl<C extends Command, I extends InteractionImpl<D, ?, ?>, D extends InteractionData> implements WidgetBinding<C> {
 	private static Logger logger = Logger.getLogger(WidgetBinding.class.getName());
 
 	/**
@@ -58,9 +59,6 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	/** The current command in progress. */
 	protected C cmd;
 
-	/** The possible command handler. May be null */
-	protected CmdHandler cmdHandler;
-
 	/** Specifies whether the command must be executed on each step of the interaction. */
 	protected final boolean continuousCmdExec;
 
@@ -69,6 +67,8 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 	/** A function that produces commands. */
 	protected final Function<D, C> cmdProducer;
+
+	protected final PublishSubject<C> cmdsProduced;
 
 
 	/**
@@ -86,10 +86,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			throw new IllegalArgumentException();
 		}
 
+		cmdsProduced = PublishSubject.create();
 		cmdProducer = cmdCreation;
 		this.interaction = interaction;
 		cmd = null;
-		cmdHandler = null;
 		continuousCmdExec = continuousExecution;
 		activated = true;
 		this.interaction.getFsm().addHandler(this);
@@ -242,11 +242,6 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			}
 			unbindCmdAttributes();
 
-			// The instrument is notified about the cancel of the command.
-			if(cmdHandler != null) {
-				cmdHandler.onCmdCancelled(cmd);
-			}
-
 			if(isContinuousCmdExec() && cmd.hadEffect()) {
 				if(cmd instanceof Undoable) {
 					((Undoable) cmd).undo();
@@ -324,10 +319,6 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 				if(!ok) {
 					ifCannotExecuteCmd();
 				}
-
-				if(ok && cmdHandler != null) {
-					cmdHandler.onCmdExecuted(cmd);
-				}
 			}
 		}
 	}
@@ -361,9 +352,6 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 				}
 				cmd.cancel();
 				unbindCmdAttributes();
-				if(cmdHandler != null) {
-					cmdHandler.onCmdCancelled(cmd);
-				}
 				cmd = null;
 			}
 		}
@@ -391,7 +379,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	}
 
 
-	private void executeCmd(final Command cmd, final boolean async) {
+	private void executeCmd(final C cmd, final boolean async) {
 		if(async) {
 			executeCmdAsync(cmd);
 		}else {
@@ -402,15 +390,12 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	protected abstract void executeCmdAsync(final Command cmd);
 
 
-	protected void afterCmdExecuted(final Command cmd, final boolean ok) {
+	protected void afterCmdExecuted(final C cmd, final boolean ok) {
 		if(loggerCmd != null) {
 			loggerCmd.log(Level.INFO, "Command execution had this result: " + ok);
 		}
 
 		if(ok) {
-			if(cmdHandler != null) {
-				cmdHandler.onCmdExecuted(cmd);
-			}
 			end();
 			endOrCancel();
 		}else {
@@ -424,9 +409,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 		// For commands executed at least one time
 		cmd.done();
-		if(cmdHandler != null) {
-			cmdHandler.onCmdDone(cmd);
-		}
+		cmdsProduced.onNext(cmd);
 
 		final boolean hadEffect = cmd.hadEffect();
 
@@ -436,10 +419,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 		if(hadEffect) {
 			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
-				CommandsRegistry.INSTANCE.addCommand(cmd, cmdHandler);
-				if(cmdHandler != null) {
-					cmdHandler.onCmdAdded(cmd);
-				}
+				CommandsRegistry.INSTANCE.addCommand(cmd, null);
 			}else {
 				CommandsRegistry.INSTANCE.unregisterCommand(cmd);
 			}
@@ -453,6 +433,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	@Override
 	public void uninstallBinding() {
 		setActivated(false);
+		cmdsProduced.onComplete();
 		loggerCmd = null;
 		loggerBinding = null;
 	}
@@ -480,7 +461,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	}
 
 	@Override
-	public void setCmdHandler(final CmdHandler cmdHandler) {
-		this.cmdHandler = cmdHandler;
+	public Observable<C> produces() {
+		return cmdsProduced;
 	}
 }

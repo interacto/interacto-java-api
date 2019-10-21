@@ -15,7 +15,7 @@
 package io.github.interacto.instrument;
 
 import io.github.interacto.binding.WidgetBinding;
-import io.github.interacto.command.CmdHandler;
+import io.github.interacto.command.Command;
 import io.github.interacto.properties.Modifiable;
 import io.github.interacto.properties.Preferenciable;
 import io.github.interacto.properties.Reinitialisable;
@@ -25,7 +25,7 @@ import java.util.List;
  * The concept of instrument and its related services.
  * @author Arnaud BLOUIN
  */
-public interface Instrument<T extends WidgetBinding> extends Preferenciable, Modifiable, Reinitialisable, CmdHandler {
+public interface Instrument<T extends WidgetBinding<? extends Command>> extends Preferenciable, Modifiable, Reinitialisable {
 	/**
 	 * @return The number of widget bindings that compose the instrument.
 	 */

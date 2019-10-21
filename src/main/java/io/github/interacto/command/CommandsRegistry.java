@@ -16,6 +16,8 @@ package io.github.interacto.command;
 
 import io.github.interacto.undo.UndoCollector;
 import io.github.interacto.undo.Undoable;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +38,7 @@ public final class CommandsRegistry {
 	private final List<CmdHandler> handlers;
 	/** The max number of cleanable commands (cf. Command::getRegistrationPolicy) that can contain the register. */
 	private int sizeMax;
+	private final PublishSubject<Command> cmdPublisher;
 
 
 	/**
@@ -46,6 +49,12 @@ public final class CommandsRegistry {
 		cmds = new ArrayList<>();
 		handlers = new ArrayList<>();
 		sizeMax = 50;
+		cmdPublisher = PublishSubject.create();
+	}
+
+	/** An RX observable objects that will provide the commands produced by the binding. */
+	public Observable<Command> commands() {
+		return cmdPublisher;
 	}
 
 	public List<CmdHandler> getHandlers() {
@@ -133,6 +142,7 @@ public final class CommandsRegistry {
 				}
 
 				cmds.add(cmd);
+				cmdPublisher.onNext(cmd);
 
 				synchronized(handlers) {
 					handlers.forEach(handler -> handler.onCmdAdded(cmd));
