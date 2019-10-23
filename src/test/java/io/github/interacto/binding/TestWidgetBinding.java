@@ -7,6 +7,7 @@ import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionStub;
+import io.reactivex.disposables.Disposable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
@@ -22,18 +23,19 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestWidgetBinding {
 	protected WidgetBindingStub binding;
+	Disposable errorStream;
 
 	@BeforeEach
 	public void setUp() {
 		binding = new WidgetBindingStub(false, CommandImplStub::new, new InteractionStub());
 		binding.setActivated(true);
-		ErrorCatcher.INSTANCE.setNotifier(exception -> fail(exception.toString()));
+		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(exception -> fail(exception.toString()));
 	}
 
 	@AfterEach
 	void tearDown() {
-		CommandsRegistry.INSTANCE.clear();
-		ErrorCatcher.INSTANCE.setNotifier(null);
+		CommandsRegistry.getInstance().clear();
+		errorStream.dispose();
 	}
 
 	@Test

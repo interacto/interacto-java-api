@@ -31,14 +31,14 @@ public class TestCommand {
 	@BeforeEach
 	void setUp() {
 		cmd = getCmdCanDo();
-		CommandsRegistry.INSTANCE.clear();
-		UndoCollector.INSTANCE.clear();
+		CommandsRegistry.getInstance().clear();
+		UndoCollector.getInstance().clear();
 	}
 
 	@Test
 	void testExecuteAndFlushNull() {
 		Command.executeAndFlush(null);
-		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+		assertTrue(CommandsRegistry.getInstance().getCommands().isEmpty());
 	}
 
 	@Test

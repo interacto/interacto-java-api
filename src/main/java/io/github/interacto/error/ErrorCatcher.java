@@ -14,37 +14,52 @@
  */
 package io.github.interacto.error;
 
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+
 /**
  * The singleton ErrorCatcher collects errors.
  * The ErrorCatcher sends the gathered exception to an ErrorNotifier (if one is defined).
  * @author Arnaud BLOUIN
  */
-public final class ErrorCatcher {
+public class ErrorCatcher {
 	/** The singleton. */
-	public static final ErrorCatcher INSTANCE = new ErrorCatcher();
+	public static ErrorCatcher instance = new ErrorCatcher();
 
 	/** The notifier object. */
-	private ErrorNotifier notifier;
+	private final PublishSubject<Throwable> notifier;
+
+	/**
+	 * @return The single instance. Cannot be null.
+	 */
+	public static ErrorCatcher getInstance() {
+		return instance;
+	}
+
+	/**
+	 * Sets the single instance.
+	 * @param newInstance The new single instance. Nothing done if null.
+	 */
+	public static void setInstance(final ErrorCatcher newInstance) {
+		if(newInstance != null) {
+			instance = newInstance;
+		}
+	}
+
 
 	/**
 	 * Creates the error catcher.
 	 */
-	private ErrorCatcher() {
+	public ErrorCatcher() {
 		super();
+		notifier = PublishSubject.create();
 	}
 
-	/**
-	 * Sets the notifier that will be notified about the collected exceptions.
-	 * @param newNotifier The notifier that will be notified the collected exceptions. Can be null.
-	 */
-	public void setNotifier(final ErrorNotifier newNotifier) {
-		notifier = newNotifier;
-	}
 
 	/**
-	 * @return The notifier that is notified about the collected exceptions.
+	 * @return An observable stream of errors. Cannot be null.
 	 */
-	public ErrorNotifier getErrorNotifier() {
+	public Observable<Throwable> getErrors() {
 		return notifier;
 	}
 
@@ -54,8 +69,8 @@ public final class ErrorCatcher {
 	 * @param exception The errors to gather.
 	 */
 	public void reportError(final Exception exception) {
-		if(exception != null && notifier != null) {
-			notifier.onException(exception);
+		if(exception != null) {
+			notifier.onNext(exception);
 		}
 	}
 }

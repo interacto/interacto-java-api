@@ -51,7 +51,7 @@ public class OpenWebPage extends CommandImpl {
 			Desktop.getDesktop().browse(uri);
 			browsed = true;
 		}catch(final IOException exception) {
-			ErrorCatcher.INSTANCE.reportError(exception);
+			ErrorCatcher.getInstance().reportError(exception);
 			browsed = false;
 		}
 	}

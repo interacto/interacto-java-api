@@ -32,13 +32,13 @@ public class Redo extends CommandImpl {
 
 	@Override
 	public boolean canDo() {
-		return UndoCollector.INSTANCE.getLastRedo().isPresent();
+		return UndoCollector.getInstance().getLastRedo().isPresent();
 	}
 
 
 	@Override
 	protected void doCmdBody() {
-		UndoCollector.INSTANCE.redo();
+		UndoCollector.getInstance().redo();
 		done();
 	}
 }

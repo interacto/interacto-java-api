@@ -1,8 +1,10 @@
 package io.github.interacto.undo;
 
+import io.reactivex.disposables.Disposable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -14,213 +16,247 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestUndoCollector {
 	Undoable undoable;
+	UndoCollector instance;
 
 	@BeforeEach
 	public void setUp() {
-		UndoCollector.INSTANCE.clear();
-		UndoCollector.INSTANCE.setSizeMax(10);
+		instance = UndoCollector.getInstance();
+		instance.clear();
+		instance.setSizeMax(10);
 		undoable = Mockito.mock(Undoable.class);
 	}
 
 	@Test
+	void testGetSetInstanceKO() {
+		UndoCollector.setInstance(null);
+		assertEquals(instance, UndoCollector.getInstance());
+	}
+
+	@Test
+	void testGetSetInstanceOK() {
+		final var newinstance = new UndoCollector();
+		UndoCollector.setInstance(newinstance);
+		assertEquals(newinstance, UndoCollector.getInstance());
+	}
+
+	@Test
 	void testUndoCallundo() {
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
+		instance.add(undoable);
+		instance.undo();
 		Mockito.verify(undoable, Mockito.times(1)).undo();
 	}
 
 	@Test
 	void testRedowithUndoDonewithGlobalUndoable() {
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
-		UndoCollector.INSTANCE.redo();
+		instance.add(undoable);
+		instance.undo();
+		instance.redo();
 		Mockito.verify(undoable, Mockito.times(1)).undo();
 		Mockito.verify(undoable, Mockito.times(1)).redo();
 	}
 
 	@Test
 	void testRedowhenRedoEmpty() {
-		UndoCollector.INSTANCE.redo();
+		instance.redo();
 		Mockito.verify(undoable, Mockito.never()).redo();
 	}
 
 
 	@Test
 	void testUndowhenUndoEmpty() {
-		UndoCollector.INSTANCE.undo();
+		instance.undo();
 		Mockito.verify(undoable, Mockito.never()).undo();
 	}
 
 
 	@Test
 	void testRedoCallredo() {
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
-		UndoCollector.INSTANCE.redo();
+		instance.add(undoable);
+		instance.undo();
+		instance.redo();
 		Mockito.verify(undoable, Mockito.times(1)).redo();
-		assertEquals(undoable, UndoCollector.INSTANCE.getLastUndo().get());
+		assertEquals(undoable, instance.getLastUndo().get());
 	}
 
 	@Test
 	void testSetSizeMaxKO() {
-		UndoCollector.INSTANCE.setSizeMax(-1);
-		UndoCollector.INSTANCE.add(undoable);
-		assertEquals(undoable, UndoCollector.INSTANCE.getLastUndo().orElseThrow());
+		instance.setSizeMax(-1);
+		instance.add(undoable);
+		assertEquals(undoable, instance.getLastUndo().orElseThrow());
 	}
 
 	@Test
 	void testSetSizeMax0KO() {
-		UndoCollector.INSTANCE.setSizeMax(0);
-		UndoCollector.INSTANCE.add(undoable);
-		assertTrue(UndoCollector.INSTANCE.getLastUndo().isEmpty());
+		instance.setSizeMax(0);
+		instance.add(undoable);
+		assertTrue(instance.getLastUndo().isEmpty());
 	}
 
 
 	@Test
 	void testAddUndoablewith0SizeUndoable() {
-		UndoCollector.INSTANCE.setSizeMax(0);
-		UndoCollector.INSTANCE.add(undoable);
-		assertTrue(UndoCollector.INSTANCE.getUndo().isEmpty());
-		assertTrue(UndoCollector.INSTANCE.getRedo().isEmpty());
+		instance.setSizeMax(0);
+		instance.add(undoable);
+		assertTrue(instance.getUndo().isEmpty());
+		assertTrue(instance.getRedo().isEmpty());
 	}
 
 	@Test
 	void testAddUndoablewithNullUndoable() {
-		UndoCollector.INSTANCE.setSizeMax(5);
-		UndoCollector.INSTANCE.add(null);
-		assertTrue(UndoCollector.INSTANCE.getUndo().isEmpty());
-		assertTrue(UndoCollector.INSTANCE.getRedo().isEmpty());
+		instance.setSizeMax(5);
+		instance.add(null);
+		assertTrue(instance.getUndo().isEmpty());
+		assertTrue(instance.getRedo().isEmpty());
 	}
 
 	@Test
 	void testAddUndoablewithLimitedUndoSize() {
 		final Undoable undoable2 = Mockito.mock(Undoable.class);
-		UndoCollector.INSTANCE.setSizeMax(1);
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.add(undoable2);
-		assertEquals(1, UndoCollector.INSTANCE.getUndo().size());
-		assertEquals(undoable2, UndoCollector.INSTANCE.getUndo().getFirst());
+		instance.setSizeMax(1);
+		instance.add(undoable);
+		instance.add(undoable2);
+		assertEquals(1, instance.getUndo().size());
+		assertEquals(undoable2, instance.getUndo().getFirst());
 	}
 
 
 	@Test
 	void testGetRedos() {
-		assertNotNull(UndoCollector.INSTANCE.getRedo());
+		assertNotNull(instance.getRedo());
 	}
 
 	@Test
 	void testGetUndos() {
-		assertNotNull(UndoCollector.INSTANCE.getUndo());
+		assertNotNull(instance.getUndo());
 	}
 
 
 	@Test
 	void testSizeMaxMutatorsUndoableRemoved() {
-		UndoCollector.INSTANCE.setSizeMax(5);
-		UndoCollector.INSTANCE.add(undoable);
-		assertTrue(UndoCollector.INSTANCE.getLastUndo().isPresent());
+		instance.setSizeMax(5);
+		instance.add(undoable);
+		assertTrue(instance.getLastUndo().isPresent());
 	}
 
 	@Test
-	void testSizeMaxMutatorsUndoableRemovedWhen0() {
-		UndoCollector.INSTANCE.setSizeMax(5);
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.setSizeMax(0);
-		assertFalse(UndoCollector.INSTANCE.getLastUndo().isPresent());
+	void testSizeMaxRemovedWhen0() {
+		final List<Optional<Undoable>> undos = new ArrayList<>();
+		instance.setSizeMax(5);
+		instance.add(undoable);
+		final Disposable undosStream = instance.undos().subscribe(undos::add);
+		instance.setSizeMax(0);
+		undosStream.dispose();
+		assertFalse(instance.getLastUndo().isPresent());
+		assertEquals(1, undos.size());
+		assertTrue(undos.get(0).isEmpty());
+	}
+
+	@Test
+	void testSizeMaxRemovedWhen1() {
+		final List<Optional<Undoable>> undos = new ArrayList<>();
+		instance.setSizeMax(5);
+		instance.add(Mockito.mock(Undoable.class));
+		instance.add(undoable);
+		final Disposable undosStream = instance.undos().subscribe(undos::add);
+		instance.setSizeMax(1);
+		undosStream.dispose();
+		assertTrue(instance.getLastUndo().isPresent());
+		assertEquals(undoable, instance.getLastUndo().get());
+		assertTrue(undos.isEmpty());
 	}
 
 	@Test
 	void testSizeMaxMutatorsSizeOK() {
-		UndoCollector.INSTANCE.setSizeMax(21);
-		assertEquals(21, UndoCollector.INSTANCE.getSizeMax());
+		instance.setSizeMax(21);
+		assertEquals(21, instance.getSizeMax());
 	}
 
 	@Test
 	void testSizeMaxMutatorsSizeKO() {
-		UndoCollector.INSTANCE.setSizeMax(5);
-		UndoCollector.INSTANCE.setSizeMax(-1);
-		assertEquals(5, UndoCollector.INSTANCE.getSizeMax());
+		instance.setSizeMax(5);
+		instance.setSizeMax(-1);
+		assertEquals(5, instance.getSizeMax());
 	}
 
 	@Test
 	void testGetLastRedoNothingStart() {
-		assertFalse(UndoCollector.INSTANCE.getLastRedo().isPresent());
+		assertFalse(instance.getLastRedo().isPresent());
 	}
 
 	@Test
 	void testGetLastRedoNothingOnNewUndoable() {
-		UndoCollector.INSTANCE.add(undoable);
-		assertFalse(UndoCollector.INSTANCE.getLastRedo().isPresent());
+		instance.add(undoable);
+		assertFalse(instance.getLastRedo().isPresent());
 	}
 
 	@Test
 	void testGetLastRedoOKOnRedo() {
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
-		assertEquals(undoable, UndoCollector.INSTANCE.getLastRedo().get());
+		instance.add(undoable);
+		instance.undo();
+		assertEquals(undoable, instance.getLastRedo().get());
 	}
 
 	@Test
 	void testGetLastUndoNothingAtStart() {
-		assertFalse(UndoCollector.INSTANCE.getLastUndo().isPresent());
+		assertFalse(instance.getLastUndo().isPresent());
 	}
 
 	@Test
 	void testGetLastUndoOKOnAdd() {
-		UndoCollector.INSTANCE.add(undoable);
-		assertEquals(undoable, UndoCollector.INSTANCE.getLastUndo().get());
+		instance.add(undoable);
+		assertEquals(undoable, instance.getLastUndo().get());
 	}
 
 	@Test
 	void testGetLastUndoMessageNothingOnStart() {
-		assertFalse(UndoCollector.INSTANCE.getLastUndoMessage().isPresent());
+		assertFalse(instance.getLastUndoMessage().isPresent());
 	}
 
 	@Test
 	void testGetLastUndoMessageOK() {
 		Mockito.when(undoable.getUndoName(Mockito.any())).thenReturn("undoredomsg");
-		UndoCollector.INSTANCE.add(undoable);
-		assertEquals("undoredomsg", UndoCollector.INSTANCE.getLastUndoMessage().get());
+		instance.add(undoable);
+		assertEquals("undoredomsg", instance.getLastUndoMessage().get());
 	}
 
 	@Test
 	void testGetLastRedoMessageNothingOnStart() {
-		assertFalse(UndoCollector.INSTANCE.getLastRedoMessage().isPresent());
+		assertFalse(instance.getLastRedoMessage().isPresent());
 	}
 
 	@Test
 	void testGetLastRedoMessageOK() {
 		Mockito.when(undoable.getUndoName(Mockito.any())).thenReturn("undoredomsg");
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
-		assertEquals("undoredomsg", UndoCollector.INSTANCE.getLastRedoMessage().get());
+		instance.add(undoable);
+		instance.undo();
+		assertEquals("undoredomsg", instance.getLastRedoMessage().get());
 	}
 
 	@Test
 	void testClear() {
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.add(Mockito.mock(Undoable.class));
-		UndoCollector.INSTANCE.undo();
-		UndoCollector.INSTANCE.clear();
-		assertFalse(UndoCollector.INSTANCE.getLastRedo().isPresent());
-		assertFalse(UndoCollector.INSTANCE.getLastUndo().isPresent());
+		instance.add(undoable);
+		instance.add(Mockito.mock(Undoable.class));
+		instance.undo();
+		instance.clear();
+		assertFalse(instance.getLastRedo().isPresent());
+		assertFalse(instance.getLastUndo().isPresent());
 	}
 
 	@Test
 	void testUndosOK() {
-		assertNotNull(UndoCollector.INSTANCE.undos());
+		assertNotNull(instance.undos());
 	}
 
 	@Test
 	void testRedosOK() {
-		assertNotNull(UndoCollector.INSTANCE.redos());
+		assertNotNull(instance.redos());
 	}
 
 	@Test
 	void testUndosAdded() {
 		final List<Optional<Undoable>> undos = new ArrayList<>();
-		final var disposable = UndoCollector.INSTANCE.undos().subscribe(undos::add);
-		UndoCollector.INSTANCE.add(undoable);
+		final var disposable = instance.undos().subscribe(undos::add);
+		instance.add(undoable);
 		disposable.dispose();
 		assertEquals(1, undos.size());
 		assertEquals(undoable, undos.get(0).orElseThrow());
@@ -230,15 +266,34 @@ public class TestUndoCollector {
 	void testUndoRedoAdded() {
 		final List<Optional<Undoable>> undos = new ArrayList<>();
 		final List<Optional<Undoable>> redos = new ArrayList<>();
-		final var disposable1 = UndoCollector.INSTANCE.undos().subscribe(undos::add);
-		final var disposable2 = UndoCollector.INSTANCE.redos().subscribe(redos::add);
-		UndoCollector.INSTANCE.add(undoable);
-		UndoCollector.INSTANCE.undo();
+		final var disposable1 = instance.undos().subscribe(undos::add);
+		final var disposable2 = instance.redos().subscribe(redos::add);
+		instance.add(undoable);
+		instance.undo();
 		disposable1.dispose();
 		disposable2.dispose();
 		assertEquals(2, undos.size());
 		assertTrue(undos.get(1).isEmpty());
 		assertEquals(1, redos.size());
 		assertEquals(undoable, redos.get(0).orElseThrow());
+	}
+
+	@Test
+	void testSetBundleOKUndo() {
+		final ResourceBundle bundle = Mockito.mock(ResourceBundle.class);
+		instance.setBundle(bundle);
+		instance.add(undoable);
+		instance.getLastUndoMessage();
+		Mockito.verify(undoable, Mockito.times(1)).getUndoName(bundle);
+	}
+
+	@Test
+	void testSetBundleOKRedo() {
+		final ResourceBundle bundle = Mockito.mock(ResourceBundle.class);
+		instance.setBundle(bundle);
+		instance.add(undoable);
+		instance.undo();
+		instance.getLastRedoMessage();
+		Mockito.verify(undoable, Mockito.times(1)).getUndoName(bundle);
 	}
 }
