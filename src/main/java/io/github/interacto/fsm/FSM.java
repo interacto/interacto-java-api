@@ -52,7 +52,7 @@ public class FSM<E> {
 	 * finished but the event keyPressed 'ctrl' is still in process. At the end of the interaction, these events are re-introduced into the
 	 * state machine of the interaction for processing.
 	 */
-	protected List<E> eventsToProcess;
+	protected final List<E> eventsToProcess;
 	/** The current timeout in progress. */
 	protected TimeoutTransition<E> currentTimeout;
 	protected FSM<E> currentSubFSM;
@@ -60,6 +60,7 @@ public class FSM<E> {
 
 	public FSM() {
 		super();
+		eventsToProcess = new ArrayList<>();
 		started = false;
 		initState = new InitState<>(this, "init");
 		states = new HashSet<>();
@@ -81,6 +82,10 @@ public class FSM<E> {
 
 	public void setInner(final boolean inner) {
 		this.inner = inner;
+	}
+
+	public boolean isInner() {
+		return inner;
 	}
 
 	public boolean process(final E event) {
@@ -139,9 +144,6 @@ public class FSM<E> {
 
 	protected void addRemaningEventsToProcess(final E event) {
 		if(event != null) {
-			if(eventsToProcess == null) {
-				eventsToProcess = new ArrayList<>();
-			}
 			synchronized(eventsToProcess) {
 				eventsToProcess.add(event);
 			}
