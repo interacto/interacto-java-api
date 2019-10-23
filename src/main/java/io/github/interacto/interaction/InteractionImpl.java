@@ -116,13 +116,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 			try {
 				Thread.sleep(throttleTimeout);
 				E evt = null;
-				synchronized(throttleCounter) {
-					if(throttleCounter.get() > 0L && currentThrottledEvent != null) {
-						evt = currentThrottledEvent;
-					}
-					throttleCounter.set(0L);
-					currentThrottledEvent = null;
+				if(throttleCounter.getAndSet(0L) > 0L && currentThrottledEvent != null) {
+					evt = currentThrottledEvent;
 				}
+				currentThrottledEvent = null;
 				if(evt != null) {
 					final E evtToProcess = evt;
 					runInUIThread(() -> directEventProcess(evtToProcess));
@@ -147,21 +144,18 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	 * @return True: the event must be processed by the interaction.
 	 */
 	private boolean checkThrottlingEvent(final E event) {
-		synchronized(throttleCounter) {
-			if(currentThrottledEvent == null || !isEventsOfSameType(currentThrottledEvent, event)) {
-				if(currentThrottledEvent != null && throttleCounter.get() > 0L) {
-					directEventProcess(event);
-				}
-				throttleCounter.set(0L);
-				currentThrottledEvent = event;
-				createThrottleTimeout();
-				return true;
-			}else {
-				// The previous throttled event is ignored
-				throttleCounter.incrementAndGet();
-				currentThrottledEvent = event;
-				return false;
+		if(currentThrottledEvent == null || !isEventsOfSameType(currentThrottledEvent, event)) {
+			if(throttleCounter.getAndSet(0L) > 0L && currentThrottledEvent != null) {
+				directEventProcess(event);
 			}
+			currentThrottledEvent = event;
+			createThrottleTimeout();
+			return true;
+		}else {
+			// The previous throttled event is ignored
+			throttleCounter.incrementAndGet();
+			currentThrottledEvent = event;
+			return false;
 		}
 	}
 

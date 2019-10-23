@@ -24,7 +24,7 @@ import io.reactivex.subjects.PublishSubject;
  */
 public class ErrorCatcher {
 	/** The singleton. */
-	public static ErrorCatcher instance = new ErrorCatcher();
+	private static ErrorCatcher instance = new ErrorCatcher();
 
 	/** The notifier object. */
 	private final PublishSubject<Throwable> notifier;
