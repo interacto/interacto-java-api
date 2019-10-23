@@ -3,8 +3,9 @@ package io.github.interacto.instrument;
 import io.github.interacto.binding.WidgetBinding;
 import io.github.interacto.command.CommandImplStub;
 import io.github.interacto.error.ErrorCatcher;
-import io.github.interacto.error.ErrorNotifier;
 import io.reactivex.disposables.Disposable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,12 +18,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TestInstrument {
 	InstrumentImpl<WidgetBinding<CommandImplStub>> instrument;
 	WidgetBinding<CommandImplStub> binding;
-	ErrorNotifier error;
+	Disposable errorStream;
+	List<Throwable> errors;
 
 	@BeforeEach
 	void setUp() {
-		error = Mockito.mock(ErrorNotifier.class);
-		ErrorCatcher.INSTANCE.setNotifier(error);
+		errors = new ArrayList<>();
+		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(errors::add);
 		binding = Mockito.mock(WidgetBinding.class);
 		instrument = new InstrumentImpl<>() {
 			@Override
@@ -34,7 +36,7 @@ public class TestInstrument {
 
 	@AfterEach
 	void tearDown() {
-		ErrorCatcher.INSTANCE.setNotifier(null);
+		errorStream.dispose();
 	}
 
 	@Test
@@ -44,7 +46,7 @@ public class TestInstrument {
 		assertFalse(instrument.hasWidgetBindings());
 		assertTrue(instrument.getWidgetBindings().isEmpty());
 		assertTrue(instrument.disposables.isEmpty());
-		Mockito.verify(error, Mockito.never()).onException(Mockito.any());
+		assertTrue(errors.isEmpty());
 	}
 
 	@Test
@@ -55,7 +57,7 @@ public class TestInstrument {
 		assertFalse(instrument.getWidgetBindings().isEmpty());
 		assertEquals(binding, instrument.getWidgetBindings().get(0));
 		Mockito.verify(binding, Mockito.times(1)).setActivated(true);
-		Mockito.verify(error, Mockito.never()).onException(Mockito.any());
+		assertTrue(errors.isEmpty());
 	}
 
 	@Test

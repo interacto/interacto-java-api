@@ -18,41 +18,57 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCommandsRegistry {
+	CommandsRegistry instance;
+
 	@BeforeEach
 	public void setUp() {
-		CommandsRegistry.INSTANCE.getCommands().clear();
-		CommandsRegistry.INSTANCE.setSizeMax(30);
-		UndoCollector.INSTANCE.clear();
+		instance = CommandsRegistry.getInstance();
+		instance.getCommands().clear();
+		instance.setSizeMax(30);
+		UndoCollector.getInstance().clear();
+	}
+
+	@Test
+	void testGetSetInstanceKO() {
+		CommandsRegistry.setInstance(null);
+		assertEquals(instance, CommandsRegistry.getInstance());
+	}
+
+	@Test
+	void testGetSetInstanceOK() {
+		final var newinstance = new CommandsRegistry();
+		CommandsRegistry.setInstance(newinstance);
+		assertEquals(newinstance, CommandsRegistry.getInstance());
 	}
 
 	@Test
 	public void testGetSetSizeMaxOK() {
-		CommandsRegistry.INSTANCE.setSizeMax(55);
-		assertEquals(55, CommandsRegistry.INSTANCE.getSizeMax());
+		instance.setSizeMax(55);
+		assertEquals(55, instance.getSizeMax());
 	}
 
 	@Test
 	public void testGetSetSizeMaxNeg() {
-		CommandsRegistry.INSTANCE.setSizeMax(55);
-		CommandsRegistry.INSTANCE.setSizeMax(-1);
-		assertEquals(55, CommandsRegistry.INSTANCE.getSizeMax());
+		instance.setSizeMax(55);
+		instance.setSizeMax(-1);
+		assertEquals(55, instance.getSizeMax());
 	}
 
 	@Test
 	public void testGetSetSizeMaxZero() {
-		CommandsRegistry.INSTANCE.setSizeMax(0);
-		assertEquals(0, CommandsRegistry.INSTANCE.getSizeMax());
+		instance.setSizeMax(0);
+		assertEquals(0, instance.getSizeMax());
 	}
 
 	@Test
 	public void testSetSizeMaxRemovesCmd() {
-		final List<Command> cmds = CommandsRegistry.INSTANCE.getCommands();
+		final List<Command> cmds = instance.getCommands();
 		final Command command1 = new CommandImplStub();
 		final Command command2 = new CommandImplStub();
-		CommandsRegistry.INSTANCE.setSizeMax(10);
-		CommandsRegistry.INSTANCE.addCommand(command1);
-		CommandsRegistry.INSTANCE.addCommand(command2);
-		CommandsRegistry.INSTANCE.setSizeMax(1);
+		instance.setSizeMax(10);
+		instance.addCommand(command1);
+		instance.addCommand(command2);
+		instance.setSizeMax(1);
 
 		assertEquals(CmdStatus.FLUSHED, command1.getStatus());
 		assertEquals(CmdStatus.CREATED, command2.getStatus());
@@ -63,14 +79,14 @@ public class TestCommandsRegistry {
 
 	@Test
 	public void testCancelCommandNull() {
-		CommandsRegistry.INSTANCE.cancelCmd(null);
+		instance.cancelCmd(null);
 	}
 
 
 	@Test
 	public void testCancelCommandFlush() {
 		final Command command = new CommandImplStub();
-		CommandsRegistry.INSTANCE.cancelCmd(command);
+		instance.cancelCmd(command);
 		assertEquals(CmdStatus.FLUSHED, command.getStatus());
 	}
 
@@ -78,66 +94,66 @@ public class TestCommandsRegistry {
 	@Test
 	public void testCancelCommandRemoved() {
 		final Command command = Mockito.mock(Command.class);
-		CommandsRegistry.INSTANCE.addCommand(command);
-		CommandsRegistry.INSTANCE.cancelCmd(command);
-		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+		instance.addCommand(command);
+		instance.cancelCmd(command);
+		assertTrue(instance.getCommands().isEmpty());
 	}
 
 
 	@Test
 	public void testRemoveCommandNull() {
-		CommandsRegistry.INSTANCE.addCommand(Mockito.mock(Command.class));
-		CommandsRegistry.INSTANCE.removeCommand(null);
-		assertEquals(1, CommandsRegistry.INSTANCE.getCommands().size());
+		instance.addCommand(Mockito.mock(Command.class));
+		instance.removeCommand(null);
+		assertEquals(1, instance.getCommands().size());
 	}
 
 
 	@Test
 	public void testRemoveCommandNotNull() {
 		final Command command = new CommandImplStub();
-		CommandsRegistry.INSTANCE.addCommand(command);
-		CommandsRegistry.INSTANCE.removeCommand(command);
-		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+		instance.addCommand(command);
+		instance.removeCommand(command);
+		assertTrue(instance.getCommands().isEmpty());
 		assertEquals(CmdStatus.FLUSHED, command.getStatus());
 	}
 
 
 	@Test
 	public void testGetCommandsNotNull() {
-		assertNotNull(CommandsRegistry.INSTANCE.getCommands());
+		assertNotNull(instance.getCommands());
 	}
 
 
 	@Test
 	public void testCancelsCommandNull() {
-		CommandsRegistry.INSTANCE.unregisterCommand(null);
-		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+		instance.unregisterCommand(null);
+		assertTrue(instance.getCommands().isEmpty());
 	}
 
 
 	@Test
 	public void testCancelsCommandNotNullDoNotCancel() {
 		final Command cmd = new CommandImplStub();
-		CommandsRegistry.INSTANCE.addCommand(cmd);
-		CommandsRegistry.INSTANCE.unregisterCommand(new CommandImplStub2());
-		assertEquals(1, CommandsRegistry.INSTANCE.getCommands().size());
+		instance.addCommand(cmd);
+		instance.unregisterCommand(new CommandImplStub2());
+		assertEquals(1, instance.getCommands().size());
 		assertNotSame(CmdStatus.FLUSHED, cmd.getStatus());
 	}
 
 	@Test
 	public void testAddCommandCannotAddBecauseNull() {
 		final Command command = new CommandImplStub();
-		CommandsRegistry.INSTANCE.getCommands().add(command);
-		CommandsRegistry.INSTANCE.addCommand(null);
-		assertEquals(1, CommandsRegistry.INSTANCE.getCommands().size());
+		instance.getCommands().add(command);
+		instance.addCommand(null);
+		assertEquals(1, instance.getCommands().size());
 	}
 
 	@Test
 	public void testAddCommandCannotAddBecauseExist() {
 		final Command command = new io.github.interacto.command.CommandImplStub();
-		CommandsRegistry.INSTANCE.getCommands().add(command);
-		CommandsRegistry.INSTANCE.addCommand(command);
-		assertEquals(1, CommandsRegistry.INSTANCE.getCommands().size());
+		instance.getCommands().add(command);
+		instance.addCommand(command);
+		assertEquals(1, instance.getCommands().size());
 	}
 
 
@@ -145,28 +161,28 @@ public class TestCommandsRegistry {
 	public void testAddCommandRemovesCommandWhenMaxCapacity() {
 		final Command command = Mockito.mock(Command.class);
 		final Command command2 = new CommandImplStub();
-		CommandsRegistry.INSTANCE.setSizeMax(1);
-		CommandsRegistry.INSTANCE.getCommands().add(command2);
-		CommandsRegistry.INSTANCE.addCommand(command);
-		assertEquals(1, CommandsRegistry.INSTANCE.getCommands().size());
-		assertEquals(command, CommandsRegistry.INSTANCE.getCommands().get(0));
+		instance.setSizeMax(1);
+		instance.getCommands().add(command2);
+		instance.addCommand(command);
+		assertEquals(1, instance.getCommands().size());
+		assertEquals(command, instance.getCommands().get(0));
 		assertEquals(CmdStatus.FLUSHED, command2.getStatus());
 	}
 
 
 	@Test
 	public void testAddCommandMaxCapacityIs0() {
-		CommandsRegistry.INSTANCE.setSizeMax(0);
-		CommandsRegistry.INSTANCE.addCommand(Mockito.mock(Command.class));
-		assertTrue(CommandsRegistry.INSTANCE.getCommands().isEmpty());
+		instance.setSizeMax(0);
+		instance.addCommand(Mockito.mock(Command.class));
+		assertTrue(instance.getCommands().isEmpty());
 	}
 
 
 	@Test
 	public void testAddCommandAddsUndoableCollector() {
 		final Command command = new CommandImplUndoableStub();
-		CommandsRegistry.INSTANCE.addCommand(command);
-		assertEquals(command, UndoCollector.INSTANCE.getLastUndo().get());
+		instance.addCommand(command);
+		assertEquals(command, UndoCollector.getInstance().getLastUndo().get());
 	}
 
 
@@ -180,7 +196,7 @@ public class TestCommandsRegistry {
 				synchronized(addedCommands) {
 					addedCommands.add(command);
 				}
-				CommandsRegistry.INSTANCE.addCommand(command);
+				instance.addCommand(command);
 			}else {
 				Command command = null;
 				synchronized(addedCommands) {
@@ -188,7 +204,7 @@ public class TestCommandsRegistry {
 						command = addedCommands.remove(new Random().nextInt(addedCommands.size()));
 					}
 				}
-				CommandsRegistry.INSTANCE.removeCommand(command);
+				instance.removeCommand(command);
 			}
 		});
 	}

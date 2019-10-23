@@ -27,20 +27,37 @@ import java.util.List;
  * The register has a limited size that can be changed.
  * @author Arnaud Blouin
  */
-public final class CommandsRegistry {
+public class CommandsRegistry {
 	/** The singleton. */
-	public static final CommandsRegistry INSTANCE = new CommandsRegistry();
+	private static CommandsRegistry instance = new CommandsRegistry();
+
 	/** The saved commands. */
 	private final List<Command> cmds;
 	/** The max number of cleanable commands (cf. Command::getRegistrationPolicy) that can contain the register. */
 	private int sizeMax;
 	private final PublishSubject<Command> cmdPublisher;
 
+	/**
+	 * @return The single instance. Cannot be null.
+	 */
+	public static CommandsRegistry getInstance() {
+		return instance;
+	}
+
+	/**
+	 * Sets the single instance.
+	 * @param newInstance The new single instance. Nothing done if null.
+	 */
+	public static void setInstance(final CommandsRegistry newInstance) {
+		if(newInstance != null) {
+			instance = newInstance;
+		}
+	}
 
 	/**
 	 * Creates and initialises a register.
 	 */
-	private CommandsRegistry() {
+	public CommandsRegistry() {
 		super();
 		cmds = new ArrayList<>();
 		sizeMax = 50;
@@ -110,7 +127,7 @@ public final class CommandsRegistry {
 				cmdPublisher.onNext(cmd);
 
 				if(cmd instanceof Undoable) {
-					UndoCollector.INSTANCE.add((Undoable) cmd);
+					UndoCollector.getInstance().add((Undoable) cmd);
 				}
 			}
 		}

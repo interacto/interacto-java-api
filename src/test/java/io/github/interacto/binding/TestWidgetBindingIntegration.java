@@ -3,7 +3,6 @@ package io.github.interacto.binding;
 import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandImpl;
 import io.github.interacto.command.CommandsRegistry;
-import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.FSM;
 import io.github.interacto.fsm.TerminalState;
 import io.github.interacto.fsm.Transition;
@@ -45,8 +44,7 @@ public class TestWidgetBindingIntegration {
 
 	@AfterEach
 	void tearDown() {
-		CommandsRegistry.INSTANCE.clear();
-		ErrorCatcher.INSTANCE.setNotifier(null);
+		CommandsRegistry.getInstance().clear();
 		WidgetBindingImpl.setLogger(null);
 	}
 

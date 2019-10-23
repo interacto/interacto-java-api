@@ -25,9 +25,9 @@ import java.util.ResourceBundle;
  * A collector of undone/redone objects.
  * @author Arnaud BLOUIN
  */
-public final class UndoCollector {
+public class UndoCollector {
 	/** The default undo/redo collector. */
-	public static final UndoCollector INSTANCE = new UndoCollector();
+	private static UndoCollector instance = new UndoCollector();
 
 	/** The standard text for redo. */
 	public static final String EMPTY_REDO = "redo";
@@ -44,11 +44,27 @@ public final class UndoCollector {
 	private final PublishSubject<Optional<Undoable>> undoPublisher;
 	private final PublishSubject<Optional<Undoable>> redoPublisher;
 
+	/**
+	 * @return The single instance. Cannot be null.
+	 */
+	public static UndoCollector getInstance() {
+		return instance;
+	}
+
+	/**
+	 * Sets the single instance.
+	 * @param newInstance The new single instance. Nothing done if null.
+	 */
+	public static void setInstance(final UndoCollector newInstance) {
+		if(newInstance != null) {
+			instance = newInstance;
+		}
+	}
 
 	/**
 	 * Creates the undo collector.
 	 */
-	private UndoCollector() {
+	public UndoCollector() {
 		super();
 		undo = new ArrayDeque<>();
 		redo = new ArrayDeque<>();
