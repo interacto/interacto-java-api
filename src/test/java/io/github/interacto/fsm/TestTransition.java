@@ -14,7 +14,7 @@ public class TestTransition {
 
 	@BeforeEach
 	void setUp() {
-		FSM<StubEvent> fsm = new FSM<>();
+		final FSM<StubEvent> fsm = new FSM<>();
 		state1 = new StdState<>(fsm, "s1");
 		state2 = new StdState<>(fsm, "s2");
 	}

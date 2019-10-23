@@ -211,7 +211,7 @@ public class TestCommandsRegistry {
 
 
 	private static class CommandImplUndoableStub extends CommandImpl implements Undoable {
-		public CommandImplUndoableStub() {
+		CommandImplUndoableStub() {
 			super();
 		}
 
@@ -243,7 +243,7 @@ public class TestCommandsRegistry {
 
 
 	private static class CommandImplStub extends CommandImpl {
-		public CommandImplStub() {
+		CommandImplStub() {
 			super();
 		}
 
@@ -260,7 +260,7 @@ public class TestCommandsRegistry {
 
 
 	private static class CommandImplStub2 extends CommandImpl {
-		public CommandImplStub2() {
+		CommandImplStub2() {
 			super();
 		}
 

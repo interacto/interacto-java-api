@@ -137,11 +137,11 @@ public class TestWidgetBinding {
 		public boolean conditionRespected;
 		public boolean mustCancel;
 
-		public WidgetBindingStub(final boolean continuous, final Supplier<CommandImplStub> cmdCreation, final InteractionStub interaction) {
+		WidgetBindingStub(final boolean continuous, final Supplier<CommandImplStub> cmdCreation, final InteractionStub interaction) {
 			this(continuous, i -> cmdCreation.get(), interaction);
 		}
 
-		public WidgetBindingStub(final boolean continuous, final Function<InteractionData, CommandImplStub> cmdCreation, final InteractionStub interaction) {
+		WidgetBindingStub(final boolean continuous, final Function<InteractionData, CommandImplStub> cmdCreation, final InteractionStub interaction) {
 			super(continuous, cmdCreation, interaction);
 			conditionRespected = false;
 			mustCancel = false;

@@ -1,6 +1,5 @@
 package io.github.interacto.fsm;
 
-
 import java.util.Arrays;
 import java.util.HashSet;
 import org.junit.jupiter.api.BeforeEach;
@@ -501,7 +500,7 @@ public class TestFSM {
 
 		@Test
 		void testExitSubGoIntoCancelling() {
-			CancellingState<StubEvent> cancel = new CancellingState<>(mainfsm, "cancel1");
+			final CancellingState<StubEvent> cancel = new CancellingState<>(mainfsm, "cancel1");
 			mainfsm.addState(cancel);
 			mainfsm.initState.transitions.clear();
 			new SubFSMTransition<>(mainfsm.initState, cancel, fsm);
@@ -515,7 +514,7 @@ public class TestFSM {
 
 		@Test
 		void testExitSubGoIntoTerminal() throws CancelFSMException {
-			TerminalState<StubEvent> terminal = new TerminalState<>(mainfsm, "terminal1");
+			final TerminalState<StubEvent> terminal = new TerminalState<>(mainfsm, "terminal1");
 			mainfsm.addState(terminal);
 			mainfsm.initState.transitions.clear();
 			new SubFSMTransition<>(mainfsm.initState, terminal, fsm);
