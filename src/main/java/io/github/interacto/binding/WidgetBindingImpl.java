@@ -243,19 +243,24 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			unbindCmdAttributes();
 
 			if(isContinuousCmdExec() && cmd.hadEffect()) {
-				if(cmd instanceof Undoable) {
-					((Undoable) cmd).undo();
-					if(loggerCmd != null) {
-						loggerCmd.log(Level.INFO, "Command undone");
-					}
-				}else {
-					throw new MustBeUndoableCmdException(cmd.getClass());
-				}
+				cancelContinousWithEffectsCmd();
 			}
 
 			cmd = null;
 			cancel();
 			endOrCancel();
+		}
+	}
+
+
+	private void cancelContinousWithEffectsCmd() {
+		if(cmd instanceof Undoable) {
+			((Undoable) cmd).undo();
+			if(loggerCmd != null) {
+				loggerCmd.log(Level.INFO, "Command undone");
+			}
+		}else {
+			throw new MustBeUndoableCmdException(cmd.getClass());
 		}
 	}
 

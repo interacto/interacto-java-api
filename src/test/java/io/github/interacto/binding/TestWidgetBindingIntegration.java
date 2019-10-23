@@ -231,12 +231,11 @@ public class TestWidgetBindingIntegration {
 
 
 
-
 	private static class EventStub1 {
 	}
 
 	private static class OneTrFSM extends FSM<Object> {
-		public OneTrFSM() {
+		OneTrFSM() {
 			super();
 			final TerminalState<Object> s1 = new TerminalState<>(this, "s1");
 			addState(s1);
