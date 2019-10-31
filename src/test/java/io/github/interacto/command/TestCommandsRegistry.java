@@ -146,12 +146,21 @@ public class TestCommandsRegistry {
 
 
 	@Test
-	public void testCancelsCommandNotNullDoNotCancel() {
+	public void testUnregisterDoNothing() {
 		final Command cmd = new CommandImplStub();
 		instance.addCommand(cmd);
 		instance.unregisterCommand(new CommandImplStub2());
 		assertEquals(1, instance.getCommands().size());
 		assertNotSame(CmdStatus.FLUSHED, cmd.getStatus());
+	}
+
+	@Test
+	public void testUnregisterOK() {
+		final Command cmd = new CommandImplStub2();
+		instance.addCommand(cmd);
+		instance.unregisterCommand(new CommandImplStub());
+		assertTrue(instance.getCommands().isEmpty());
+		assertEquals(CmdStatus.FLUSHED, cmd.getStatus());
 	}
 
 	@Test
