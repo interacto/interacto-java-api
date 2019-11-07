@@ -26,6 +26,7 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestUndoCollector {
@@ -34,23 +35,23 @@ public class TestUndoCollector {
 
 	@BeforeEach
 	public void setUp() {
-		instance = UndoCollector.getInstance();
-		instance.clear();
+		instance = new UndoCollector();
 		instance.setSizeMax(10);
 		undoable = Mockito.mock(Undoable.class);
 	}
 
 	@Test
 	void testGetSetInstanceKO() {
+		UndoCollector.setInstance(instance);
 		UndoCollector.setInstance(null);
-		assertEquals(instance, UndoCollector.getInstance());
+		assertSame(instance, UndoCollector.getInstance());
 	}
 
 	@Test
 	void testGetSetInstanceOK() {
 		final var newinstance = new UndoCollector();
 		UndoCollector.setInstance(newinstance);
-		assertEquals(newinstance, UndoCollector.getInstance());
+		assertSame(newinstance, UndoCollector.getInstance());
 	}
 
 	@Test
