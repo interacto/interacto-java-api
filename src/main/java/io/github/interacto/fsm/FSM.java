@@ -120,24 +120,22 @@ public class FSM<E> {
 	 * At the end of the FSM execution, the events still (eg keyPress) in process must be recycled to be reused in the FSM.
 	 */
 	protected void processRemainingEvents() {
-		if(eventsToProcess != null) {
-			synchronized(eventsToProcess) {
-				// All the events must be processed but the list stillProcessingEvents can be modified
-				// during the process. So, a clone of the list must be created.
-				final List<E> list = new ArrayList<>(eventsToProcess);
+		synchronized(eventsToProcess) {
+			// All the events must be processed but the list stillProcessingEvents can be modified
+			// during the process. So, a clone of the list must be created.
+			final List<E> list = new ArrayList<>(eventsToProcess);
 
-				// All the events must be processed.
-				while(!list.isEmpty()) {
-					final E event = list.remove(0);
-					// Do not forget to remove the event from its original list.
-					eventsToProcess.remove(0);
+			// All the events must be processed.
+			while(!list.isEmpty()) {
+				final E event = list.remove(0);
+				// Do not forget to remove the event from its original list.
+				eventsToProcess.remove(0);
 
-					if(logger != null) {
-						logger.log(Level.INFO, "Recycling event: " + event);
-					}
-
-					process(event);
+				if(logger != null) {
+					logger.log(Level.INFO, "Recycling event: " + event);
 				}
+
+				process(event);
 			}
 		}
 	}
@@ -242,10 +240,8 @@ public class FSM<E> {
 	}
 
 	public void fullReinit() {
-		if(eventsToProcess != null) {
-			synchronized(eventsToProcess) {
-				eventsToProcess.clear();
-			}
+		synchronized(eventsToProcess) {
+			eventsToProcess.clear();
 		}
 		reinit();
 
