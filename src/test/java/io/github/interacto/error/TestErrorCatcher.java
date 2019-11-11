@@ -29,7 +29,7 @@ public class TestErrorCatcher {
 
 	@BeforeEach
 	void setUp() {
-		instance = ErrorCatcher.getInstance();
+		instance = new ErrorCatcher();
 	}
 
 	@Test
@@ -38,16 +38,17 @@ public class TestErrorCatcher {
 	}
 
 	@Test
-	void testGetSetInstanceKO() {
-		ErrorCatcher.setInstance(null);
-		assertEquals(instance, ErrorCatcher.getInstance());
-	}
-
-	@Test
 	void testGetSetInstanceOK() {
 		final var newinstance = new ErrorCatcher();
 		ErrorCatcher.setInstance(newinstance);
 		assertEquals(newinstance, ErrorCatcher.getInstance());
+	}
+
+	@Test
+	void testGetSetInstanceKO() {
+		ErrorCatcher.setInstance(instance);
+		ErrorCatcher.setInstance(null);
+		assertEquals(instance, ErrorCatcher.getInstance());
 	}
 
 	@Test
