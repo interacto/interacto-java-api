@@ -1,10 +1,13 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <name>Interacto Java API</name>
     <groupId>io.github.interacto</groupId>
     <artifactId>interacto-java-api</artifactId>
     <version>4.0</version>
     <packaging>jar</packaging>
+    <description>The Java API of the Interacto library</description>
+    <url>https://interacto.github.io</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,6 +28,12 @@
         <name>DiverSE research group</name>
         <url>http://www.diverse-team.fr</url>
     </organization>
+
+    <developers>
+        <developer>
+            <name>Arnaud Blouin</name>
+        </developer>
+    </developers>
 
     <issueManagement>
         <system>GitHub</system>
@@ -221,6 +230,39 @@
                         <scope>compile</scope>
                     </dependency>
                 </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/assemblySrc.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
