@@ -59,7 +59,7 @@ pipeline {
             steps {
                 rtMavenRun (
                     pom: 'pom.xml',
-                    goals: 'clean install',
+                    goals: 'clean install -Dgpg.skip',
                     deployerId: 'MAVEN_DEPLOYER'
                 )
             }
