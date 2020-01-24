@@ -116,4 +116,16 @@ public interface WidgetBinding<C extends Command> extends FSMHandler {
 
 	/** An RX observable objects that will provide the commands produced by the binding. */
 	Observable<C> produces();
+
+	/**
+	 * Information method.
+	 * @return The number of times the widget binding successfully ended (nevermind a command was created or not).
+	 */
+	long getTimesEnded();
+
+	/**
+	 * Information method.
+	 * @return The number of times the widget binding was cancelled (nevermind a command was created or not).
+	 */
+	long getTimesCancelled();
 }

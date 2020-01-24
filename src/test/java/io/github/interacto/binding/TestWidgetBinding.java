@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -146,6 +147,51 @@ public class TestWidgetBinding {
 		assertNotNull(binding.getCommand());
 	}
 
+	@Test
+	void testCounters() {
+		assertEquals(0, binding.getTimesEnded());
+		assertEquals(0, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testCounterEndedOnce() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmStops();
+		assertEquals(1, binding.getTimesEnded());
+		assertEquals(0, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testCounterEndedTwice() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmStops();
+		binding.fsmStarts();
+		binding.fsmStops();
+		assertEquals(2, binding.getTimesEnded());
+		assertEquals(0, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testCounterCancelledOnce() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmCancels();
+		assertEquals(1, binding.getTimesCancelled());
+		assertEquals(0, binding.getTimesEnded());
+	}
+
+	@Test
+	void testCounterCancelledTwice() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmCancels();
+		binding.fsmStarts();
+		binding.fsmCancels();
+		assertEquals(2, binding.getTimesCancelled());
+		assertEquals(0, binding.getTimesEnded());
+	}
 
 	static class WidgetBindingStub extends WidgetBindingImpl<CommandImplStub, InteractionStub, InteractionData> {
 		public boolean conditionRespected;

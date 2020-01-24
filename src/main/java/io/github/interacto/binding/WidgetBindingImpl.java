@@ -47,6 +47,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		}
 	}
 
+	protected long timeEnded;
+
+	protected long timeCancelled;
+
 	protected Logger loggerBinding;
 
 	protected Logger loggerCmd;
@@ -86,6 +90,8 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			throw new IllegalArgumentException();
 		}
 
+		timeCancelled = 0;
+		timeEnded = 0;
 		cmdsProduced = PublishSubject.create();
 		cmdProducer = cmdCreation;
 		this.interaction = interaction;
@@ -249,6 +255,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			cmd = null;
 			cancel();
 			endOrCancel();
+			timeCancelled++;
 		}
 	}
 
@@ -350,6 +357,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			executeCmd(cmd, async);
 			unbindCmdAttributes();
 			cmd = null;
+			timeEnded++;
 		}else {
 			if(cmd != null) {
 				if(loggerCmd != null) {
@@ -358,6 +366,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 				cmd.cancel();
 				unbindCmdAttributes();
 				cmd = null;
+				timeCancelled++;
 			}
 		}
 	}
@@ -468,5 +477,15 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	@Override
 	public Observable<C> produces() {
 		return cmdsProduced;
+	}
+
+	@Override
+	public long getTimesEnded() {
+		return timeEnded;
+	}
+
+	@Override
+	public long getTimesCancelled() {
+		return timeCancelled;
 	}
 }
