@@ -40,6 +40,8 @@ public abstract class InstrumentImpl<T extends WidgetBinding<? extends Command>>
 
 	protected final Set<Disposable> disposables;
 
+	protected boolean configured;
+
 	/**
 	 * Creates and initialises the instrument.
 	 */
@@ -49,6 +51,7 @@ public abstract class InstrumentImpl<T extends WidgetBinding<? extends Command>>
 		modified = false;
 		bindings = new ArrayList<>();
 		disposables = new HashSet<>();
+		configured = false;
 	}
 
 	/**
@@ -115,7 +118,8 @@ public abstract class InstrumentImpl<T extends WidgetBinding<? extends Command>>
 	public void setActivated(final boolean toBeActivated) {
 		activated = toBeActivated;
 
-		if(toBeActivated && !hasWidgetBindings()) {
+		if(toBeActivated && !configured) {
+			configured = true;
 			configureBindings();
 		}else {
 			bindings.forEach(binding -> binding.setActivated(toBeActivated));

@@ -50,6 +50,7 @@ public class TestInstrument {
 
 	@AfterEach
 	void tearDown() {
+		assertTrue(errors.isEmpty());
 		errorStream.dispose();
 	}
 
@@ -123,5 +124,94 @@ public class TestInstrument {
 		instrument.setActivated(true);
 		instrument.clearEvents();
 		Mockito.verify(binding, Mockito.times(1)).clearEvents();
+	}
+
+	@Test
+	void testHasWidgetBindings() {
+		instrument.addBinding(Mockito.mock(WidgetBinding.class));
+		assertTrue(instrument.hasWidgetBindings());
+	}
+
+	@Test
+	void testAddBindingNull() {
+		instrument = new InstrumentImpl<>() {
+			@Override
+			protected void configureBindings() {
+			}
+		};
+		instrument.setActivated(true);
+		instrument.addBinding(null);
+		assertFalse(instrument.hasWidgetBindings());
+	}
+
+	@Test
+	void testSetActivatedWithNoBinding() {
+		instrument = new InstrumentImpl<>() {
+			@Override
+			protected void configureBindings() {
+			}
+		};
+		instrument.setActivated(true);
+		assertTrue(instrument.isActivated());
+		assertFalse(instrument.hasWidgetBindings());
+	}
+
+	@Test
+	void testSetActivatedWithBinding() {
+		instrument.setActivated(true);
+		assertTrue(instrument.isActivated());
+		assertTrue(instrument.hasWidgetBindings());
+	}
+
+	@Test
+	void testSetActivatedWithBindingAlreadyAdded() {
+		instrument.addBinding(Mockito.mock(WidgetBinding.class));
+		instrument.setActivated(true);
+		assertTrue(instrument.isActivated());
+		assertEquals(2, instrument.getNbWidgetBindings());
+	}
+
+	@Test
+	void testSetActivatedTwoTimesWithBindingAlreadyAdded() {
+		instrument.addBinding(Mockito.mock(WidgetBinding.class));
+		instrument.setActivated(true);
+		instrument.setActivated(true);
+		assertTrue(instrument.isActivated());
+		assertEquals(2, instrument.getNbWidgetBindings());
+	}
+
+	@Test
+	void testSave() {
+		instrument.save(false, null, null, null);
+	}
+
+	@Test
+	void testLoad() {
+		instrument.load(false, null, null);
+	}
+
+	@Test
+	void testReinit() {
+		instrument.reinit();
+	}
+
+	@Test
+	void testDisposeBinding() {
+		final var disposable1 = Mockito.mock(Disposable.class);
+		final var disposable2 = Mockito.mock(Disposable.class);
+		final var binding = Mockito.mock(WidgetBinding.class);
+		instrument.addBinding(binding);
+		instrument.addDisposable(disposable2);
+		instrument.addDisposable(disposable1);
+		Mockito.when(disposable1.isDisposed()).thenReturn(true);
+
+		instrument.uninstallBindings();
+
+		Mockito.verify(binding, Mockito.times(1)).uninstallBinding();
+		assertFalse(instrument.hasWidgetBindings());
+		Mockito.verify(disposable1, Mockito.times(1)).isDisposed();
+		Mockito.verify(disposable2, Mockito.times(1)).isDisposed();
+		Mockito.verify(disposable2, Mockito.times(1)).dispose();
+
 	}
 }
