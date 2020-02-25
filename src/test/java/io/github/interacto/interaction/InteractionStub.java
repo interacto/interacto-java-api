@@ -36,8 +36,12 @@ public class InteractionStub extends InteractionImpl<InteractionData, Object, FS
 	}
 
 	@Override
+	protected void consumeEvent(final Object event) {
+	}
+
+	@Override
 	protected boolean isEventsOfSameType(final Object evt1, final Object evt2) {
-		return false;
+		return evt1.getClass() == evt2.getClass();
 	}
 
 	@Override

@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class InteractionImpl<D extends InteractionData, E, F extends FSM<E>> {
-	private static Logger defaultLogger = Logger.getLogger(InteractionImpl.class.getName());
+	static Logger defaultLogger = Logger.getLogger(InteractionImpl.class.getName());
 
 	/**
 	 * Sets the logger to use. Cannot be null.
@@ -47,9 +47,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected final AtomicLong throttleCounter;
 	protected E currentThrottledEvent;
 	/** The current throttle thread in progress. */
-	private Future<?> currThrottleTimeoutFuture;
+	Future<?> currThrottleTimeoutFuture;
 	private ExecutorService executor;
 	private final Disposable disposable;
+	private boolean consumeEvents;
 
 	protected InteractionImpl(final F fsm) {
 		super();
@@ -66,6 +67,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		activated = true;
 		throttleCounter = new AtomicLong();
 		currentThrottledEvent = null;
+		consumeEvents = false;
 	}
 
 	public abstract D getData();
@@ -86,6 +88,15 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 
 	private void directEventProcess(final E event) {
 		fsm.process(event);
+		if(consumeEvents) {
+			consumeEvent(event);
+		}
+	}
+
+	protected abstract void consumeEvent(final E event);
+
+	public void setConsumeEvents(final boolean consumeEvents) {
+		this.consumeEvents = consumeEvents;
 	}
 
 	/**
@@ -116,7 +127,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 			try {
 				Thread.sleep(throttleTimeout);
 				E evt = null;
-				if(throttleCounter.getAndSet(0L) > 0L && currentThrottledEvent != null) {
+				if(throttleCounter.getAndSet(0L) > 0L) {
 					evt = currentThrottledEvent;
 				}
 				currentThrottledEvent = null;
@@ -145,7 +156,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	 */
 	private boolean checkThrottlingEvent(final E event) {
 		if(currentThrottledEvent == null || !isEventsOfSameType(currentThrottledEvent, event)) {
-			if(throttleCounter.getAndSet(0L) > 0L && currentThrottledEvent != null) {
+			if(throttleCounter.getAndSet(0L) > 0L) {
 				directEventProcess(event);
 			}
 			currentThrottledEvent = event;
@@ -211,7 +222,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		setActivated(false);
 		logger = null;
 		if(executor != null) {
-			executor.shutdown();
+			executor.shutdownNow();
 		}
 	}
 }
