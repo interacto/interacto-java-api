@@ -15,6 +15,7 @@
 package io.github.interacto.command;
 
 import io.github.interacto.undo.UndoCollector;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -26,25 +27,19 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCommand {
-	public static Command getCmdCanDo() {
-		return new CommandImpl() {
-			@Override
-			protected void doCmdBody() {
-				//
-			}
-
-			@Override
-			public boolean canDo() {
-				return true;
-			}
-		};
+	public static class CmdStub extends CommandImpl {
+		final AtomicInteger cptDoCmdBody = new AtomicInteger();
+		@Override
+		protected void doCmdBody() {
+			cptDoCmdBody.incrementAndGet();
+		}
 	}
 
-	Command cmd;
+	CmdStub cmd;
 
 	@BeforeEach
 	void setUp() {
-		cmd = getCmdCanDo();
+		cmd = new CmdStub();
 		CommandsRegistry.getInstance().clear();
 		UndoCollector.getInstance().clear();
 	}
@@ -57,7 +52,7 @@ public class TestCommand {
 
 	@Test
 	void testExecuteAndFlushCannotDo() {
-		cmd = Mockito.mock(Command.class);
+		cmd = Mockito.mock(CmdStub.class);
 		Mockito.when(cmd.canDo()).thenReturn(false);
 		Command.executeAndFlush(cmd);
 		Mockito.verify(cmd, Mockito.never()).doIt();
@@ -66,7 +61,7 @@ public class TestCommand {
 
 	@Test
 	void testExecuteAndFlushCanDo() {
-		cmd = Mockito.mock(Command.class);
+		cmd = Mockito.mock(CmdStub.class);
 		Mockito.when(cmd.canDo()).thenReturn(true);
 		Command.executeAndFlush(cmd);
 		Mockito.verify(cmd, Mockito.times(1)).doIt();
@@ -82,6 +77,13 @@ public class TestCommand {
 	void testCommandStatusAfterFlush() {
 		cmd.flush();
 		assertEquals(Command.CmdStatus.FLUSHED, cmd.getStatus());
+	}
+
+	@Test
+	void testExecutedTwoTimes() {
+		cmd.doIt();
+		cmd.doIt();
+		assertEquals(2, cmd.cptDoCmdBody.get());
 	}
 
 	@Test
@@ -110,13 +112,11 @@ public class TestCommand {
 
 	@Test
 	void testCommandCanDoItWhenCanDo() {
-		final Command cmd = getCmdCanDo();
 		assertTrue(cmd.doIt());
 	}
 
 	@Test
 	void testCommandIsExecutedWhenDoIt() {
-		final Command cmd = getCmdCanDo();
 		cmd.doIt();
 		assertEquals(Command.CmdStatus.EXECUTED, cmd.getStatus());
 	}
@@ -146,15 +146,25 @@ public class TestCommand {
 
 	@Test
 	void testCommandHadEffectWhenNotDoneAndExecuted() {
-		final Command cmd = getCmdCanDo();
 		cmd.doIt();
 		assertFalse(cmd.hadEffect());
 	}
 
 	@Test
+	void testGetRegistrationPolicyNotExecuted() {
+		assertEquals(Command.RegistrationPolicy.NONE, cmd.getRegistrationPolicy());
+	}
+
+	@Test
+	void testGetRegistrationPolicyDone() {
+		cmd.done();
+		assertEquals(Command.RegistrationPolicy.LIMITED, cmd.getRegistrationPolicy());
+	}
+
+	@Test
 	void testCommandNotUnregisterByByDefault() {
 		assertFalse(cmd.unregisteredBy(null));
-		assertFalse(cmd.unregisteredBy(getCmdCanDo()));
+		assertFalse(cmd.unregisteredBy(new CmdStub()));
 	}
 
 	@Test
@@ -185,7 +195,6 @@ public class TestCommand {
 
 	@Test
 	void testCommandDoneWhenExecuted() {
-		final Command cmd = getCmdCanDo();
 		cmd.doIt();
 		cmd.done();
 		assertEquals(Command.CmdStatus.DONE, cmd.getStatus());
@@ -223,7 +232,6 @@ public class TestCommand {
 
 	@Test
 	void testIsDoneWhenExecuted() {
-		final Command cmd = getCmdCanDo();
 		cmd.doIt();
 		assertFalse(this.cmd.isDone());
 	}

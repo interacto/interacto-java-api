@@ -14,6 +14,9 @@
  */
 package io.github.interacto.command;
 
+import io.github.interacto.command.Command.CmdStatus;
+import io.github.interacto.undo.UndoCollector;
+import io.github.interacto.undo.Undoable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -21,9 +24,6 @@ import java.util.ResourceBundle;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import io.github.interacto.command.Command.CmdStatus;
-import io.github.interacto.undo.UndoCollector;
-import io.github.interacto.undo.Undoable;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -90,6 +90,34 @@ public class TestCommandsRegistry {
 		assertEquals(command2, cmds.get(0));
 	}
 
+	@Test
+	void testSetSiezMaxWithUnlimited() {
+		final var cmd1 = Mockito.mock(Command.class);
+		Mockito.when(cmd1.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.UNLIMITED);
+		final var cmd2 = Mockito.mock(Command.class);
+		Mockito.when(cmd2.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.LIMITED);
+		final var cmd3 = Mockito.mock(Command.class);
+		Mockito.when(cmd3.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.LIMITED);
+		instance.addCommand(cmd2);
+		instance.addCommand(cmd1);
+		instance.addCommand(cmd3);
+		instance.setSizeMax(0);
+		assertEquals(List.of(cmd1), instance.getCommands());
+	}
+
+	@Test
+	void testCommandsNotNull() {
+		assertNotNull(instance.commands());
+	}
+
+	@Test
+	void testCommandsObservedOnAdded() {
+		final List<Command> cmds = new ArrayList<>();
+		instance.commands().subscribe(cmds::add);
+		final var cmd = Mockito.mock(Command.class);
+		instance.addCommand(cmd);
+		assertEquals(List.of(cmd), cmds);
+	}
 
 	@Test
 	public void testCancelCommandNull() {
@@ -200,6 +228,29 @@ public class TestCommandsRegistry {
 		assertTrue(instance.getCommands().isEmpty());
 	}
 
+	@Test
+	void testAddCommandMaxCapacityButUnlimitedInHistory() {
+		final var cmd1 = Mockito.mock(Command.class);
+		Mockito.when(cmd1.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.UNLIMITED);
+		final var cmd2 = Mockito.mock(Command.class);
+		Mockito.when(cmd2.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.LIMITED);
+		final var cmd3 = Mockito.mock(Command.class);
+		Mockito.when(cmd3.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.LIMITED);
+		instance.setSizeMax(2);
+		instance.addCommand(cmd1);
+		instance.addCommand(cmd2);
+		instance.addCommand(cmd3);
+		assertEquals(List.of(cmd1, cmd3), instance.getCommands());
+	}
+
+	@Test
+	void testAddCommandMaxCapacityButUnlimitedAdded() {
+		final var cmd1 = Mockito.mock(Command.class);
+		Mockito.when(cmd1.getRegistrationPolicy()).thenReturn(Command.RegistrationPolicy.UNLIMITED);
+		instance.setSizeMax(0);
+		instance.addCommand(cmd1);
+		assertEquals(List.of(cmd1), instance.getCommands());
+	}
 
 	@Test
 	public void testAddCommandAddsUndoableCollector() {
@@ -232,6 +283,18 @@ public class TestCommandsRegistry {
 		});
 	}
 
+
+	@Test
+	void testClear() {
+		final var c1 = Mockito.mock(Command.class);
+		final var c2 = Mockito.mock(Command.class);
+		instance.addCommand(c1);
+		instance.addCommand(c2);
+		instance.clear();
+		assertTrue(instance.getCommands().isEmpty());
+		Mockito.verify(c1, Mockito.times(1)).flush();
+		Mockito.verify(c2, Mockito.times(1)).flush();
+	}
 
 	private static class CommandImplUndoableStub extends CommandImpl implements Undoable {
 		CommandImplUndoableStub() {

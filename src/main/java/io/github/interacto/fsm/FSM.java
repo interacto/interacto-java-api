@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -263,12 +262,13 @@ public class FSM<E> {
 			}
 
 			try {
-				final Optional<InputState<E>> nextState = currentTimeout.execute(null).filter(state -> state instanceof OutputState<?>);
-
-				if(nextState.isPresent()) {
-					setCurrentState((OutputState<E>) nextState.get());
-					checkTimeoutTransition();
-				}
+				currentTimeout
+					.execute(null)
+					.filter(state -> state instanceof OutputState<?>)
+					.ifPresent(nextState -> {
+						setCurrentState((OutputState<E>) nextState);
+						checkTimeoutTransition();
+					});
 			}catch(final CancelFSMException ignored) {
 				// Already processed
 			}

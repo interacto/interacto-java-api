@@ -116,8 +116,10 @@ public class CommandsRegistry {
 
 				// If there is too many commands in the register, the oldest removable command is removed and flushed.
 				if(cmds.size() >= sizeMax) {
-					cmds.stream().filter(command -> command.getRegistrationPolicy() != Command.RegistrationPolicy.UNLIMITED).findFirst().
-						ifPresent(command -> {
+					cmds.stream()
+						.filter(command -> command.getRegistrationPolicy() != Command.RegistrationPolicy.UNLIMITED)
+						.findFirst()
+						.ifPresent(command -> {
 							cmds.remove(command);
 							command.flush();
 						});

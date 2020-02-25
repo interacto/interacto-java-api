@@ -14,8 +14,14 @@
  */
 package io.github.interacto.fsm;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,10 +36,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestFSM {
 	FSM<StubEvent> fsm;
+	FSMHandler handler;
 
 	@BeforeEach
 	void setUp() {
 		fsm = new FSM<>();
+		handler = Mockito.mock(FSMHandler.class);
 	}
 
 	@Test
@@ -82,11 +90,9 @@ public class TestFSM {
 		StdState<StubEvent> std;
 		TerminalState<StubEvent> terminal;
 		CancellingState<StubEvent> cancelling;
-		FSMHandler handler;
 
 		@BeforeEach
 		void setUp() {
-			handler = Mockito.mock(FSMHandler.class);
 			fsm.addHandler(handler);
 			fsm.log(true);
 			std = new StdState<>(fsm, "s1");
@@ -260,6 +266,144 @@ public class TestFSM {
 		}
 	}
 
+	@Test
+	void testAddHandlerNull() {
+		fsm.addHandler(null);
+		assertTrue(fsm.handlers.isEmpty());
+	}
+
+	@Test
+	void testRemoveHandlerNull() {
+		fsm.addHandler(handler);
+		fsm.removeHandler(null);
+		assertEquals(Set.of(handler), fsm.handlers);
+	}
+
+	@Test
+	void testAddRemainingNull() {
+		fsm.addRemaningEventsToProcess(null);
+		assertTrue(fsm.eventsToProcess.isEmpty());
+	}
+
+	@Test
+	void testAddRemainingNotNull() {
+		final var evt = new StubEvent();
+		fsm.addRemaningEventsToProcess(evt);
+		assertEquals(List.of(evt), fsm.eventsToProcess);
+	}
+
+	@Test
+	void testIsInner() {
+		assertFalse(fsm.isInner());
+	}
+
+	@Test
+	void testSetInnerTrue() {
+		fsm.setInner(true);
+		assertTrue(fsm.isInner());
+	}
+
+	@Test
+	void testSetInnerFalse() {
+		fsm.setInner(true);
+		fsm.setInner(false);
+		assertFalse(fsm.isInner());
+	}
+
+	@Test
+	void testProcessRemainingEvents() {
+		final var evt = new StubEvent();
+		fsm.addRemaningEventsToProcess(evt);
+		fsm.processRemainingEvents();
+		assertTrue(fsm.eventsToProcess.isEmpty());
+	}
+
+	@Test
+	void testOnTerminatingIfStarted() throws CancelFSMException {
+		fsm.onStarting();
+		fsm.addHandler(handler);
+		fsm.onTerminating();
+		Mockito.verify(handler, Mockito.times(1)).fsmStops();
+	}
+
+	@Test
+	void testOnTerminatingNotStarted() throws CancelFSMException {
+		fsm.addHandler(handler);
+		fsm.onTerminating();
+		Mockito.verify(handler, Mockito.never()).fsmStops();
+	}
+
+	@Test
+	void testOnUpdatingIfStarted() throws CancelFSMException {
+		fsm.onStarting();
+		fsm.addHandler(handler);
+		fsm.onUpdating();
+		Mockito.verify(handler, Mockito.times(1)).fsmUpdates();
+	}
+
+	@Test
+	void testOnUpdatingNotStarted() throws CancelFSMException {
+		fsm.addHandler(handler);
+		fsm.onUpdating();
+		Mockito.verify(handler, Mockito.never()).fsmUpdates();
+	}
+
+	@Test
+	void testAddNullState() {
+		final var state = Mockito.mock(InputState.class);
+		fsm.addState(state);
+		fsm.addState(null);
+		assertEquals(Set.of(fsm.initState, state), fsm.getStates());
+	}
+
+	@Test
+	void testLogWithAlreadyLog() {
+		fsm.log(true);
+		fsm.log(true);
+		assertNotNull(fsm.logger);
+	}
+
+	@Test
+	void testOnTimeoutWithoutTimeout() {
+		fsm.logger = Mockito.mock(Logger.class);
+		fsm.onTimeout();
+		Mockito.verify(fsm.logger, Mockito.never()).log(Mockito.any(), Mockito.anyString());
+	}
+
+
+	@Test
+	void testUninstall() {
+		final var s1 = Mockito.mock(InputState.class);
+		final var disposed = new AtomicBoolean();
+		fsm.addState(s1);
+		fsm.eventsToProcess.add(new StubEvent());
+		fsm.uninstall();
+
+		assertTrue(fsm.states.isEmpty());
+		assertTrue(fsm.eventsToProcess.isEmpty());
+		assertTrue(fsm.currentStatePublisher.hasComplete());
+		assertNull(fsm.logger);
+		assertNull(fsm.startingState);
+		assertNull(fsm.currentSubFSM);
+		Mockito.verify(s1, Mockito.times(1)).uninstall();
+	}
+
+	@Test
+	void testCurrentStateNotNull() {
+		assertNotNull(fsm.currentState());
+	}
+
+	@Test
+	void testCurrentStateChanged() {
+		final List<Map.Entry<OutputState<StubEvent>, OutputState<StubEvent>>> changes = new ArrayList<>();
+		final var newCurr = Mockito.mock(OutputState.class);
+		fsm.currentState().subscribe(changes::add);
+		fsm.setCurrentState(newCurr);
+		assertEquals(1, changes.size());
+		assertEquals(newCurr, changes.get(0).getValue());
+		assertEquals(fsm.initState, changes.get(0).getKey());
+	}
+
 	@Nested
 	class TestMultipleTransitionChoice {
 		StdState<StubEvent> std;
@@ -269,11 +413,9 @@ public class TestFSM {
 		Transition<StubEvent> sToT;
 		Transition<StubEvent> sToC;
 		Transition<StubEvent> recur;
-		FSMHandler handler;
 
 		@BeforeEach
 		void setUp() {
-			handler = Mockito.mock(FSMHandler.class);
 			fsm.addHandler(handler);
 			fsm.log(true);
 			std = new StdState<>(fsm, "s1");
@@ -386,13 +528,10 @@ public class TestFSM {
 		Transition<StubEvent> iToS;
 		Transition<StubEvent> sToT;
 		TimeoutTransition<StubEvent> timeout;
-		FSMHandler handler;
 
 		@BeforeEach
 		void setUp() {
-			handler = Mockito.mock(FSMHandler.class);
 			fsm.addHandler(handler);
-			fsm.log(true);
 			std = new StdState<>(fsm, "s1");
 			std2 = new StdState<>(fsm, "s2");
 			terminal = new TerminalState<>(fsm, "t1");
@@ -407,6 +546,7 @@ public class TestFSM {
 
 		@Test
 		void testTimeoutChangeState() throws InterruptedException {
+			fsm.log(true);
 			fsm.process(new StubEvent());
 			Thread.sleep(200);
 			assertEquals(std2, fsm.getCurrentState());
@@ -414,6 +554,16 @@ public class TestFSM {
 
 		@Test
 		void testTimeoutStoppedOnOtherTransition() throws InterruptedException {
+			fsm.process(new StubEvent());
+			Thread.sleep(10);
+			fsm.process(new StubEvent());
+			Thread.sleep(100);
+			assertEquals(fsm.initState, fsm.getCurrentState());
+		}
+
+		@Test
+		void testTimeoutStoppedOnOtherTransitionWithLog() throws InterruptedException {
+			fsm.log(true);
 			fsm.process(new StubEvent());
 			Thread.sleep(10);
 			fsm.process(new StubEvent());
@@ -440,11 +590,9 @@ public class TestFSM {
 		StdState<StubEvent> subS2;
 		TerminalState<StubEvent> subT;
 		CancellingState<StubEvent> subC;
-		FSMHandler handler;
 
 		@BeforeEach
 		void setUp() {
-			handler = Mockito.mock(FSMHandler.class);
 			fsm = new FSM<>();
 			mainfsm = new FSM<>();
 			s1 = new StdState<>(mainfsm, "s1");
