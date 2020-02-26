@@ -19,6 +19,7 @@ import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.CancelFSMException;
+import io.github.interacto.fsm.FSM;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionStub;
 import io.reactivex.disposables.Disposable;
@@ -26,10 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -37,14 +40,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestWidgetBinding {
 	protected WidgetBindingStub binding;
 	Disposable errorStream;
+	Logger mementoLogger;
 
 	@BeforeEach
 	public void setUp() {
+		mementoLogger = WidgetBindingImpl.getLogger();
 		binding = new WidgetBindingStub(false, CmdStub::new, new InteractionStub());
 		binding.setActivated(true);
 		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(exception -> fail(exception.toString()));
@@ -52,6 +58,7 @@ public class TestWidgetBinding {
 
 	@AfterEach
 	void tearDown() {
+		WidgetBindingImpl.setLogger(mementoLogger);
 		CommandsRegistry.getInstance().clear();
 		errorStream.dispose();
 	}
@@ -59,6 +66,12 @@ public class TestWidgetBinding {
 	@Test
 	void testConstructorInteractionNull() {
 		assertThrows(IllegalArgumentException.class, () -> new WidgetBindingStub(false, CmdStub::new, null));
+	}
+
+	@Test
+	void testConstructorCmdCreationNull() {
+		assertThrows(IllegalArgumentException.class,
+			() -> new WidgetBindingStub(false, (Function<InteractionData, CmdStub>) null, new InteractionStub()));
 	}
 
 	@Test
@@ -82,7 +95,7 @@ public class TestWidgetBinding {
 	void testLinkActivation() {
 		binding.setActivated(false);
 		binding.setActivated(true);
-		Assertions.assertTrue(binding.isActivated());
+		assertTrue(binding.isActivated());
 	}
 
 	@Test
@@ -93,7 +106,7 @@ public class TestWidgetBinding {
 	@Test
 	void testExecuteOK() {
 		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
-		Assertions.assertTrue(binding.isContinuousCmdExec());
+		assertTrue(binding.isContinuousCmdExec());
 	}
 
 	@Test
@@ -225,12 +238,98 @@ public class TestWidgetBinding {
 		assertEquals(0, binding.getTimesEnded());
 	}
 
+	@Test
+	void testSetGetLogger() {
+		final Logger log = Mockito.mock(Logger.class);
+		WidgetBindingImpl.setLogger(log);
+		assertEquals(log, WidgetBindingImpl.getLogger());
+	}
+
+	@Test
+	void testSetLoggerNull() {
+		WidgetBindingImpl.setLogger(null);
+		assertEquals(mementoLogger, WidgetBindingImpl.getLogger());
+	}
+
+	@Test
+	void testLogBinding() {
+		binding.logBinding(true);
+		assertNotNull(binding.loggerBinding);
+	}
+
+	@Test
+	void testLogAgainBinding() {
+		binding.logBinding(true);
+		binding.logBinding(true);
+		assertNotNull(binding.loggerBinding);
+	}
+
+	@Test
+	void testNoLogBinding() {
+		binding.logBinding(true);
+		binding.logBinding(false);
+		assertNull(binding.loggerBinding);
+	}
+
+	@Test
+	void testLogCmd() {
+		binding.logCmd(true);
+		assertNotNull(binding.loggerCmd);
+	}
+
+	@Test
+	void testLogAgainCmd() {
+		binding.logCmd(true);
+		binding.logCmd(true);
+		assertNotNull(binding.loggerCmd);
+	}
+
+	@Test
+	void testNoLogCmd() {
+		binding.logCmd(true);
+		binding.logCmd(false);
+		assertNull(binding.loggerCmd);
+	}
+
+	@Test
+	void testLogInteraction() {
+		final var interaction = Mockito.mock(InteractionStub.class);
+		Mockito.when(interaction.getFsm()).thenReturn(Mockito.mock(FSM.class));
+		binding = new WidgetBindingStub(false, CmdStub::new, interaction);
+		binding.logInteraction(true);
+		Mockito.verify(interaction, Mockito.times(1)).log(true);
+		Mockito.verify(interaction, Mockito.never()).log(false);
+	}
+
+	@Test
+	void testNoLogInteraction() {
+		final var interaction = Mockito.mock(InteractionStub.class);
+		Mockito.when(interaction.getFsm()).thenReturn(Mockito.mock(FSM.class));
+		binding = new WidgetBindingStub(false, CmdStub::new, interaction);
+		binding.logInteraction(false);
+		Mockito.verify(interaction, Mockito.times(1)).log(false);
+		Mockito.verify(interaction, Mockito.never()).log(true);
+	}
+
+	@Test
+	void testSetGetAsync() {
+		binding.setAsync(true);
+		assertTrue(binding.isAsync());
+	}
+
+	@Test
+	void testSetGetAsyncFalse() {
+		binding.setAsync(true);
+		binding.setAsync(false);
+		assertFalse(binding.isAsync());
+	}
+
 	static class WidgetBindingStub extends WidgetBindingImpl<CmdStub, InteractionStub, InteractionData> {
 		public boolean conditionRespected;
 		public boolean mustCancel;
 
 		WidgetBindingStub(final boolean continuous, final Supplier<CmdStub> cmdCreation, final InteractionStub interaction) {
-			this(continuous, i -> cmdCreation.get(), interaction);
+			super(continuous, i -> cmdCreation.get(), interaction);
 		}
 
 		WidgetBindingStub(final boolean continuous, final Function<InteractionData, CmdStub> cmdCreation, final InteractionStub interaction) {

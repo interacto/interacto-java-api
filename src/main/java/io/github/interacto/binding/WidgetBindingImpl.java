@@ -48,6 +48,13 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		}
 	}
 
+	/**
+	 * @return The global logger. Cannot be null.
+	 */
+	public static Logger getLogger() {
+		return logger;
+	}
+
 	protected long timeEnded;
 
 	protected long timeCancelled;

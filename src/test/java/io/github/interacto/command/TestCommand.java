@@ -37,6 +37,16 @@ public class TestCommand {
 	}
 
 	@Test
+	void testCanDo() {
+		assertTrue(new CommandImpl() {
+			@Override
+			protected void doCmdBody() {
+
+			}
+		}.canDo());
+	}
+
+	@Test
 	void testExecuteAndFlushNull() {
 		Command.executeAndFlush(null);
 		assertTrue(CommandsRegistry.getInstance().getCommands().isEmpty());
