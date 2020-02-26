@@ -15,7 +15,6 @@
 package io.github.interacto.command;
 
 import io.github.interacto.undo.UndoCollector;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -27,19 +26,12 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCommand {
-	public static class CmdStub extends CommandImpl {
-		final AtomicInteger cptDoCmdBody = new AtomicInteger();
-		@Override
-		protected void doCmdBody() {
-			cptDoCmdBody.incrementAndGet();
-		}
-	}
-
 	CmdStub cmd;
 
 	@BeforeEach
 	void setUp() {
 		cmd = new CmdStub();
+		cmd.candoValue = true;
 		CommandsRegistry.getInstance().clear();
 		UndoCollector.getInstance().clear();
 	}
@@ -52,8 +44,7 @@ public class TestCommand {
 
 	@Test
 	void testExecuteAndFlushCannotDo() {
-		cmd = Mockito.mock(CmdStub.class);
-		Mockito.when(cmd.canDo()).thenReturn(false);
+		cmd.candoValue = false;
 		Command.executeAndFlush(cmd);
 		Mockito.verify(cmd, Mockito.never()).doIt();
 		Mockito.verify(cmd, Mockito.times(1)).flush();
@@ -61,8 +52,6 @@ public class TestCommand {
 
 	@Test
 	void testExecuteAndFlushCanDo() {
-		cmd = Mockito.mock(CmdStub.class);
-		Mockito.when(cmd.canDo()).thenReturn(true);
 		Command.executeAndFlush(cmd);
 		Mockito.verify(cmd, Mockito.times(1)).doIt();
 		Mockito.verify(cmd, Mockito.times(1)).flush();
@@ -106,7 +95,7 @@ public class TestCommand {
 
 	@Test
 	void testCommandCannotDoItWhenCannotDoAndCreated() {
-		final Command cmd = new CommandImplStub();
+		final Command cmd = new CmdStub();
 		assertFalse(cmd.doIt());
 	}
 

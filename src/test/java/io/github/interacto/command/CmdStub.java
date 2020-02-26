@@ -14,38 +14,19 @@
  */
 package io.github.interacto.command;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+public class CmdStub extends CommandImpl {
+	final AtomicInteger cptDoCmdBody = new AtomicInteger();
+	boolean candoValue;
 
-public abstract class BaseCommandTest<T extends CommandImpl> {
-	protected T cmd;
-
-	@BeforeEach
-	public void setUp() {
-		cmd = createCommand();
+	@Override
+	protected void doCmdBody() {
+		cptDoCmdBody.incrementAndGet();
 	}
 
-	protected abstract T createCommand();
-
-	@Test
-	public abstract void testFlush() throws Exception;
-
-	@Test
-	public abstract void testDo() throws Exception;
-
-	@Test
-	public abstract void testCanDo() throws Exception;
-
-	@Test
-	public abstract void testIsRegisterable() throws Exception;
-
-	@Test
-	public abstract void testHadEffect() throws Exception;
-
-	@Test
-	public void testCanDoKOByDefault() {
-		assertFalse(cmd.canDo());
+	@Override
+	public boolean canDo() {
+		return candoValue;
 	}
 }

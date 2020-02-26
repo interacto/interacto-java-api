@@ -15,7 +15,7 @@
 package io.github.interacto.instrument;
 
 import io.github.interacto.binding.WidgetBinding;
-import io.github.interacto.command.CommandImplStub;
+import io.github.interacto.command.CmdStub;
 import io.github.interacto.error.ErrorCatcher;
 import io.reactivex.disposables.Disposable;
 import java.util.ArrayList;
@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestInstrument {
-	InstrumentImpl<WidgetBinding<CommandImplStub>> instrument;
-	WidgetBinding<CommandImplStub> binding;
+	InstrumentImpl<WidgetBinding<CmdStub>> instrument;
+	WidgetBinding<CmdStub> binding;
 	Disposable errorStream;
 	List<Throwable> errors;
 

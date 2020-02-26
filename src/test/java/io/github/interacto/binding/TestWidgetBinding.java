@@ -15,7 +15,7 @@
 package io.github.interacto.binding;
 
 import io.github.interacto.command.Command;
-import io.github.interacto.command.CommandImplStub;
+import io.github.interacto.command.CmdStub;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.CancelFSMException;
@@ -42,7 +42,7 @@ public class TestWidgetBinding {
 
 	@BeforeEach
 	public void setUp() {
-		binding = new WidgetBindingStub(false, CommandImplStub::new, new InteractionStub());
+		binding = new WidgetBindingStub(false, CmdStub::new, new InteractionStub());
 		binding.setActivated(true);
 		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(exception -> fail(exception.toString()));
 	}
@@ -55,7 +55,7 @@ public class TestWidgetBinding {
 
 	@Test
 	void testConstructorInteractionNull() {
-		assertThrows(IllegalArgumentException.class, () -> new WidgetBindingStub(false, CommandImplStub::new, null));
+		assertThrows(IllegalArgumentException.class, () -> new WidgetBindingStub(false, CmdStub::new, null));
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class TestWidgetBinding {
 
 	@Test
 	void testExecuteOK() {
-		binding = new WidgetBindingStub(true, CommandImplStub::new, new InteractionStub());
+		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
 		Assertions.assertTrue(binding.isContinuousCmdExec());
 	}
 
@@ -193,15 +193,15 @@ public class TestWidgetBinding {
 		assertEquals(0, binding.getTimesEnded());
 	}
 
-	static class WidgetBindingStub extends WidgetBindingImpl<CommandImplStub, InteractionStub, InteractionData> {
+	static class WidgetBindingStub extends WidgetBindingImpl<CmdStub, InteractionStub, InteractionData> {
 		public boolean conditionRespected;
 		public boolean mustCancel;
 
-		WidgetBindingStub(final boolean continuous, final Supplier<CommandImplStub> cmdCreation, final InteractionStub interaction) {
+		WidgetBindingStub(final boolean continuous, final Supplier<CmdStub> cmdCreation, final InteractionStub interaction) {
 			this(continuous, i -> cmdCreation.get(), interaction);
 		}
 
-		WidgetBindingStub(final boolean continuous, final Function<InteractionData, CommandImplStub> cmdCreation, final InteractionStub interaction) {
+		WidgetBindingStub(final boolean continuous, final Function<InteractionData, CmdStub> cmdCreation, final InteractionStub interaction) {
 			super(continuous, cmdCreation, interaction);
 			conditionRespected = false;
 			mustCancel = false;

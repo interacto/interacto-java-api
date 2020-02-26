@@ -201,7 +201,7 @@ public class TestCommandsRegistry {
 
 	@Test
 	public void testAddCommandCannotAddBecauseExist() {
-		final Command command = new io.github.interacto.command.CommandImplStub();
+		final Command command = new CommandImplStub();
 		instance.getCommands().add(command);
 		instance.addCommand(command);
 		assertEquals(1, instance.getCommands().size());
