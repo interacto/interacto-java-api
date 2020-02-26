@@ -113,6 +113,19 @@ public class TestWidgetBinding {
 	}
 
 	@Test
+	void testExecuteCrashAndInteractionStops() throws CancelFSMException {
+		errorStream.dispose();
+		final IllegalArgumentException ex = new IllegalArgumentException();
+		final Supplier<CmdStub> supplier = () -> {
+			throw ex;
+		};
+
+		binding = new WidgetBindingStub(true, supplier, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStops();
+	}
+
+	@Test
 	void testIsInteractionMustBeCancelled() {
 		assertFalse(binding.isStrictStart());
 	}

@@ -379,7 +379,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 
 	protected boolean createAndInitCommand() {
-		final boolean ok = when();
+		boolean ok = when();
 
 		if(loggerBinding != null) {
 			loggerBinding.log(Level.INFO, "when predicate is {}", ok);
@@ -391,7 +391,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 					loggerCmd.log(Level.INFO, "Command creation");
 				}
 				cmd = createCommand();
-				first();
+				ok = cmd != null;
+				if(ok) {
+					first();
+				}
 			}
 		}
 
