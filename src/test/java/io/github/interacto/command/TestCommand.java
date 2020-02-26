@@ -44,17 +44,19 @@ public class TestCommand {
 
 	@Test
 	void testExecuteAndFlushCannotDo() {
-		cmd.candoValue = false;
-		Command.executeAndFlush(cmd);
-		Mockito.verify(cmd, Mockito.never()).doIt();
-		Mockito.verify(cmd, Mockito.times(1)).flush();
+		final CmdStub spy = Mockito.spy(cmd);
+		spy.candoValue = false;
+		Command.executeAndFlush(spy);
+		Mockito.verify(spy, Mockito.never()).doIt();
+		Mockito.verify(spy, Mockito.times(1)).flush();
 	}
 
 	@Test
 	void testExecuteAndFlushCanDo() {
-		Command.executeAndFlush(cmd);
-		Mockito.verify(cmd, Mockito.times(1)).doIt();
-		Mockito.verify(cmd, Mockito.times(1)).flush();
+		final CmdStub spy = Mockito.spy(cmd);
+		Command.executeAndFlush(spy);
+		Mockito.verify(spy, Mockito.times(1)).doIt();
+		Mockito.verify(spy, Mockito.times(1)).flush();
 	}
 
 	@Test
