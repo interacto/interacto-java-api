@@ -21,13 +21,6 @@ import io.github.interacto.instrument.Instrument;
  * @author Arnaud Blouin
  */
 public class ActivateInstrument extends InstrumentCommand {
-	/**
-	 * Creates the command.
-	 */
-	public ActivateInstrument() {
-		this(null);
-	}
-
 	public ActivateInstrument(final Instrument<?> instrument) {
 		super(instrument);
 	}

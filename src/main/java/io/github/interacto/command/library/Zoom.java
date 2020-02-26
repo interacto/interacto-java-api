@@ -22,7 +22,7 @@ import io.github.interacto.properties.Zoomable;
  */
 public class Zoom extends PositionCommand {
 	/** The object to zoom. */
-	protected Zoomable zoomable;
+	protected final Zoomable zoomable;
 
 	/** The zooming level. */
 	protected double zoomLevel;
@@ -31,18 +31,10 @@ public class Zoom extends PositionCommand {
 	/**
 	 * Initialises a Zoom command.
 	 */
-	public Zoom() {
+	public Zoom(final Zoomable zoomable) {
 		super();
-
 		zoomLevel = Double.NaN;
-		zoomable = null;
-	}
-
-
-	@Override
-	public void flush() {
-		super.flush();
-		zoomable = null;
+		this.zoomable = zoomable;
 	}
 
 
@@ -56,15 +48,6 @@ public class Zoom extends PositionCommand {
 	protected void doCmdBody() {
 		zoomable.setZoom(px, py, zoomLevel);
 	}
-
-
-	/**
-	 * @param newZoomable the zoomable to set.
-	 */
-	public void setZoomable(final Zoomable newZoomable) {
-		zoomable = newZoomable;
-	}
-
 
 	/**
 	 * @param newZoomLevel the zoomLevel to set.

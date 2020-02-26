@@ -25,30 +25,28 @@ import java.net.URI;
  * @author Arnaud BLOUIN
  */
 public class OpenWebPage extends CommandImpl {
+	protected final Desktop desktop;
 	/** The URI to open. */
-	protected URI uri;
-
+	protected final URI uri;
 	protected boolean browsed;
 
 	/**
 	 * Creates the command.
+	 * @param desktop The desktop to use
+	 * @param uri The URI to open
 	 */
-	public OpenWebPage() {
+	public OpenWebPage(final Desktop desktop, final URI uri) {
 		super();
+		this.desktop = desktop;
+		this.uri = uri;
 		browsed = false;
-	}
-
-
-	@Override
-	public void flush() {
-		uri = null;
 	}
 
 
 	@Override
 	protected void doCmdBody() {
 		try {
-			Desktop.getDesktop().browse(uri);
+			desktop.browse(uri);
 			browsed = true;
 		}catch(final IOException exception) {
 			ErrorCatcher.getInstance().reportError(exception);
@@ -59,18 +57,13 @@ public class OpenWebPage extends CommandImpl {
 
 	@Override
 	public boolean canDo() {
-		return uri != null && Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE);
+		return uri != null
+			&& desktop != null
+			&& desktop.isSupported(Desktop.Action.BROWSE);
 	}
 
 	@Override
 	public boolean hadEffect() {
-		return super.hadEffect() && browsed;
-	}
-
-	/**
-	 * @param newURI The URI to open.
-	 */
-	public void setUri(final URI newURI) {
-		uri = newURI;
+		return browsed;
 	}
 }

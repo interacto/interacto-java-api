@@ -29,16 +29,13 @@ public class Undo extends CommandImpl {
 		super();
 	}
 
-
 	@Override
 	public boolean canDo() {
 		return UndoCollector.getInstance().getLastUndo().isPresent();
 	}
 
-
 	@Override
 	protected void doCmdBody() {
 		UndoCollector.getInstance().undo();
-		done();
 	}
 }

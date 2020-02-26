@@ -29,16 +29,13 @@ public class Redo extends CommandImpl {
 		super();
 	}
 
-
 	@Override
 	public boolean canDo() {
 		return UndoCollector.getInstance().getLastRedo().isPresent();
 	}
 
-
 	@Override
 	protected void doCmdBody() {
 		UndoCollector.getInstance().redo();
-		done();
 	}
 }

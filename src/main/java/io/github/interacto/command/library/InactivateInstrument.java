@@ -21,13 +21,6 @@ import io.github.interacto.instrument.Instrument;
  * @author Arnaud Blouin
  */
 public class InactivateInstrument extends InstrumentCommand {
-	/**
-	 * Creates the command.
-	 */
-	public InactivateInstrument() {
-		this(null);
-	}
-
 	public InactivateInstrument(final Instrument<?> instrument) {
 		super(instrument);
 	}

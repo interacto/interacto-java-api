@@ -17,7 +17,7 @@ package io.github.interacto;
 import java.awt.GraphicsEnvironment;
 
 public abstract class HelperTest {
-	public static boolean isX11Set() {
-		return !GraphicsEnvironment.getLocalGraphicsEnvironment().isHeadlessInstance();
+	public static boolean isHeadlessMode() {
+		return GraphicsEnvironment.getLocalGraphicsEnvironment().isHeadlessInstance();
 	}
 }

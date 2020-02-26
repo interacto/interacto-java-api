@@ -12,37 +12,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.interacto.command;
+package io.github.interacto.command.library;
 
-import org.junit.jupiter.api.Test;
-import io.github.interacto.command.library.InstrumentCommand;
 import io.github.interacto.instrument.Instrument;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public abstract class TestInstrumentCommand<T extends InstrumentCommand> extends BaseCommandTest<InstrumentCommand> {
+public class TestActivateInstrument {
+	ActivateInstrument cmd;
+	Instrument<?> ins;
+
+	@BeforeEach
+	void setUp() {
+		ins = Mockito.mock(Instrument.class);
+		cmd = new ActivateInstrument(ins);
+	}
+
 	@Test
-	@Override
-	public void testCanDo() throws SecurityException, IllegalArgumentException {
-		cmd.setInstrument(Mockito.mock(Instrument.class));
+	void testNullCons() {
+		cmd = new ActivateInstrument(null);
+		assertFalse(cmd.canDo());
+	}
+
+	@Test
+	void testCanDo() {
 		assertTrue(cmd.canDo());
 	}
 
-	@Override
 	@Test
-	public void testFlush() {
-		cmd.setInstrument(Mockito.mock(Instrument.class));
-		cmd.flush();
-		assertNull(cmd.getInstrument());
+	void testDo() {
+		cmd.doIt();
+		Mockito.verify(ins, Mockito.times(1)).setActivated(true);
+		Mockito.verify(ins, Mockito.never()).setActivated(false);
 	}
 
 	@Test
-	public void testGetSetInstrument() {
-		final Instrument<?> ins = Mockito.mock(Instrument.class);
-		cmd.setInstrument(ins);
-		assertEquals(ins, cmd.getInstrument());
+	void testHadEffect() {
+		cmd.doIt();
+		cmd.done();
+		assertTrue(cmd.hadEffect());
 	}
 }

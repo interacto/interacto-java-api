@@ -33,7 +33,7 @@ public abstract class ModifyValue<T> extends CommandImpl {
 	 * Initialises the command.
 	 */
 	public ModifyValue() {
-		super();
+		this(null);
 	}
 
 	/**
@@ -67,12 +67,15 @@ public abstract class ModifyValue<T> extends CommandImpl {
 	}
 
 
+	@Override
+	protected void doCmdBody() {
+		applyValue();
+	}
+
 	/**
 	 * This method executes the job of methods undo, redo, and do
-	 * @param obj The value to set. Must not be null.
-	 * @throws NullPointerException If the given value is null.
 	 */
-	protected abstract void applyValue(final T obj);
+	protected abstract void applyValue();
 
 
 	/**

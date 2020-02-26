@@ -23,14 +23,7 @@ import io.github.interacto.command.CommandImpl;
  */
 public abstract class InstrumentCommand extends CommandImpl {
 	/** The manipulated instrument. */
-	protected Instrument<?> instrument;
-
-	/**
-	 * Creates the command.
-	 */
-	public InstrumentCommand() {
-		this(null);
-	}
+	protected final Instrument<?> instrument;
 
 	public InstrumentCommand(final Instrument<?> instrument) {
 		super();
@@ -38,31 +31,7 @@ public abstract class InstrumentCommand extends CommandImpl {
 	}
 
 	@Override
-	public void flush() {
-		super.flush();
-		instrument = null;
-	}
-
-
-	@Override
 	public boolean canDo() {
 		return instrument != null;
-	}
-
-
-	/**
-	 * @return The manipulated instrument.
-	 */
-	public Instrument<?> getInstrument() {
-		return instrument;
-	}
-
-
-	/**
-	 * Sets the manipulated instrument.
-	 * @param newInstrument The manipulated instrument.
-	 */
-	public void setInstrument(final Instrument<?> newInstrument) {
-		instrument = newInstrument;
 	}
 }

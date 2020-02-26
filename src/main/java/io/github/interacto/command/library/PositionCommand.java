@@ -32,15 +32,8 @@ public abstract class PositionCommand extends CommandImpl {
 	 */
 	public PositionCommand() {
 		super();
-
 		px = Double.NaN;
 		py = Double.NaN;
-	}
-
-
-	@Override
-	public boolean canDo() {
-		return !Double.isNaN(px) && !Double.isNaN(py);
 	}
 
 

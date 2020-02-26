@@ -12,47 +12,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.github.interacto.command;
+package io.github.interacto.command.library;
 
-import org.junit.jupiter.api.Test;
-import io.github.interacto.command.library.ActivateInstrument;
 import io.github.interacto.instrument.Instrument;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TestActivateInstrument extends TestInstrumentCommand<ActivateInstrument> {
-	@Override
-	protected ActivateInstrument createCommand() {
-		return new ActivateInstrument();
+public class TestInactivateInstrument {
+	InactivateInstrument cmd;
+	Instrument<?> ins;
+
+	@BeforeEach
+	void setUp() {
+		ins = Mockito.mock(Instrument.class);
+		cmd = new InactivateInstrument(ins);
 	}
 
-	@Override
 	@Test
-	public void testDo() {
-		final Instrument<?> ins = Mockito.mock(Instrument.class);
-		cmd.setInstrument(ins);
+	void testNullCons() {
+		cmd = new InactivateInstrument(null);
+		assertFalse(cmd.canDo());
+	}
+
+	@Test
+	void testCanDo() {
+		assertTrue(cmd.canDo());
+	}
+
+	@Test
+	void testDo() {
 		cmd.doIt();
-		Mockito.verify(ins, Mockito.times(1)).setActivated(true);
+		Mockito.verify(ins, Mockito.times(1)).setActivated(false);
+		Mockito.verify(ins, Mockito.never()).setActivated(true);
 	}
 
-	@Override
 	@Test
-	public void testIsRegisterable() {
-		assertEquals(Command.RegistrationPolicy.NONE, cmd.getRegistrationPolicy());
-	}
-
-	@Override
-	@Test
-	public void testHadEffect() {
+	void testHadEffect() {
+		cmd.doIt();
 		cmd.done();
 		assertTrue(cmd.hadEffect());
-	}
-
-	@Test
-	public void testHadNoEffectBeforeDone() {
-		assertFalse(cmd.hadEffect());
 	}
 }
