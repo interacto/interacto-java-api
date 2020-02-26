@@ -16,6 +16,7 @@ package io.github.interacto.binding;
 
 import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandsRegistry;
+import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionImpl;
@@ -153,7 +154,12 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	 * @return The created command or null if problems occurred.
 	 */
 	protected C createCommand() {
-		return cmdProducer.apply(interaction.getData());
+		try {
+			return cmdProducer.apply(interaction.getData());
+		}catch(final Exception ex) {
+			ErrorCatcher.getInstance().reportError(ex);
+			return null;
+		}
 	}
 
 

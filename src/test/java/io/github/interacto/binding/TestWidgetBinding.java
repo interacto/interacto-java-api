@@ -14,14 +14,16 @@
  */
 package io.github.interacto.binding;
 
-import io.github.interacto.command.Command;
 import io.github.interacto.command.CmdStub;
+import io.github.interacto.command.Command;
 import io.github.interacto.command.CommandsRegistry;
 import io.github.interacto.error.ErrorCatcher;
 import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionStub;
 import io.reactivex.disposables.Disposable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
@@ -33,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -91,6 +94,22 @@ public class TestWidgetBinding {
 	void testExecuteOK() {
 		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
 		Assertions.assertTrue(binding.isContinuousCmdExec());
+	}
+
+	@Test
+	void testExecuteCrash() {
+		errorStream.dispose();
+		final List<Throwable> errors = new ArrayList<>();
+		final IllegalArgumentException ex = new IllegalArgumentException();
+		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(errors::add);
+		final Supplier<CmdStub> supplier = () -> {
+			throw ex;
+		};
+
+		binding = new WidgetBindingStub(true, supplier, new InteractionStub());
+		assertNull(binding.createCommand());
+		assertEquals(1, errors.size());
+		assertSame(ex, errors.get(0));
 	}
 
 	@Test
