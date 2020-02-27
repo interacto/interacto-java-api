@@ -17,8 +17,8 @@ package io.github.interacto.command;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CmdStub extends CommandImpl {
-	final AtomicInteger cptDoCmdBody = new AtomicInteger();
-	boolean candoValue;
+	public final AtomicInteger cptDoCmdBody = new AtomicInteger();
+	public boolean candoValue;
 
 	@Override
 	protected void doCmdBody() {

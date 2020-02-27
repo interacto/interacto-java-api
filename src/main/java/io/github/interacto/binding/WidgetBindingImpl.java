@@ -452,7 +452,11 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 			if(cmd.getRegistrationPolicy() != Command.RegistrationPolicy.NONE) {
 				CommandsRegistry.getInstance().addCommand(cmd);
 			}else {
-				CommandsRegistry.getInstance().unregisterCommand(cmd);
+				// This case is possible only if the policy of the command changes during
+				// its lifecycle using continuous execution:
+				// at start, the command policy is no NONE so the command is executed and added.
+				// Then the policy changes to NONE so that we must remove it from the registry.
+				CommandsRegistry.getInstance().removeCommand(cmd);
 			}
 			ifCmdHadEffects();
 		}else {

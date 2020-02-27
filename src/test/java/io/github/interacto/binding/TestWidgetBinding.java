@@ -43,19 +43,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestWidgetBinding {
 	protected WidgetBindingStub binding;
 	Disposable errorStream;
 	Logger mementoLogger;
+	List<Throwable> errors;
 
 	@BeforeEach
 	public void setUp() {
 		mementoLogger = WidgetBindingImpl.getLogger();
 		binding = new WidgetBindingStub(false, CmdStub::new, new InteractionStub());
 		binding.setActivated(true);
-		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(exception -> fail(exception.toString()));
+		errors = new ArrayList<>();
+		errorStream = ErrorCatcher.getInstance().getErrors().subscribe(errors::add);
 	}
 
 	@AfterEach
@@ -63,6 +64,7 @@ public class TestWidgetBinding {
 		WidgetBindingImpl.setLogger(mementoLogger);
 		CommandsRegistry.getInstance().clear();
 		errorStream.dispose();
+		assertEquals(List.of(), errors);
 	}
 
 	@Test
@@ -408,6 +410,188 @@ public class TestWidgetBinding {
 		Mockito.verify(cmd, Mockito.times(1)).undo();
 	}
 
+	@Test
+	void testUpdateActivatedWithLogCmdNotOk() throws CancelFSMException {
+		binding.conditionRespected = false;
+		binding.logBinding(true);
+		binding.fsmStarts();
+		binding.fsmUpdates();
+		assertFalse(binding.then);
+	}
+
+	@Test
+	void testUpdateActivatedNoLogCmdOk() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmUpdates();
+		assertTrue(binding.then);
+	}
+
+	@Test
+	void testUpdateActivatedWithLogCmdOk() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.logCmd(true);
+		binding.fsmStarts();
+		binding.fsmUpdates();
+		assertTrue(binding.then);
+	}
+
+	@Test
+	void testUpdateNotActivated() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.first = false;
+		binding.setActivated(false);
+		binding.fsmUpdates();
+		assertFalse(binding.then);
+		assertFalse(binding.first);
+	}
+
+	@Test
+	void testUpdateWhenCmdNotCreated() throws CancelFSMException {
+		binding.conditionRespected = false;
+		binding.fsmStarts();
+		binding.logCmd(true);
+		binding.conditionRespected = true;
+		binding.fsmUpdates();
+		assertTrue(binding.first);
+		assertNotNull(binding.cmd);
+	}
+
+	@Test
+	void testUpdateWithCmdCrash() throws CancelFSMException {
+		final var ex = new IllegalArgumentException();
+		final Supplier<CmdStub> supplier = () -> {
+			throw ex;
+		};
+		binding = new WidgetBindingStub(true, supplier, new InteractionStub());
+
+		binding.conditionRespected = false;
+		binding.fsmStarts();
+		binding.conditionRespected = true;
+		binding.fsmUpdates();
+		errors.remove(ex);
+		assertFalse(binding.first);
+		assertNull(binding.cmd);
+	}
+
+	@Test
+	void testUpdateContinuousWithLogCannotDo() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.logCmd(true);
+		binding.fsmStarts();
+		binding.cmd.candoValue = false;
+		binding.fsmUpdates();
+		assertTrue(binding.ifcannotdo);
+		assertEquals(0, binding.cmd.cptDoCmdBody.get());
+	}
+
+	@Test
+	void testUpdateContinuousNotLogCanDo() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.candoValue = true;
+		binding.fsmUpdates();
+		assertFalse(binding.ifcannotdo);
+		assertEquals(1, binding.cmd.cptDoCmdBody.get());
+	}
+
+	@Test
+	void testStopNoLogCmdCreated() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		final var cmd = binding.cmd;
+		binding.conditionRespected = false;
+		binding.fsmStops();
+		assertEquals(Command.CmdStatus.CANCELLED, cmd.getStatus());
+		assertTrue(binding.unbind);
+		assertNull(binding.cmd);
+		assertEquals(1, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testStopNoCmdCreated() throws CancelFSMException {
+		binding.conditionRespected = false;
+		binding.fsmStarts();
+		binding.fsmStops();
+		assertFalse(binding.unbind);
+		assertNull(binding.cmd);
+		assertEquals(0, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testStopWithLogCmdCreatedCancelledTwoTimes() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.logCmd(true);
+		binding.fsmStarts();
+		binding.conditionRespected = false;
+		binding.fsmStops();
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.conditionRespected = false;
+		binding.fsmStops();
+		assertEquals(2, binding.getTimesCancelled());
+	}
+
+	@Test
+	void testUninstallBinding() {
+		binding.uninstallBinding();
+		assertFalse(binding.isActivated());
+		assertTrue(binding.cmdsProduced.hasComplete());
+		assertNull(binding.loggerCmd);
+		assertNull(binding.loggerBinding);
+	}
+
+	@Test
+	void testExecAsync() throws CancelFSMException {
+		binding.setAsync(true);
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.candoValue = true;
+		binding.fsmStops();
+		assertTrue(binding.execAsync);
+	}
+
+	@Test
+	void testExecNotAsync() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.candoValue = true;
+		binding.fsmStops();
+		assertFalse(binding.execAsync);
+	}
+
+	@Test
+	void testAfterExecCmdHadEffects() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, CmdStubUndoable::new, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.candoValue = true;
+		binding.fsmStops();
+		assertEquals(1, CommandsRegistry.getInstance().getCommands().size());
+		assertTrue(CommandsRegistry.getInstance().getCommands().get(0) instanceof CmdStubUndoable);
+		assertTrue(binding.cmdHadEffects);
+	}
+
+	@Test
+	void testAfterExecCmdHadEffectsNonePolicy() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, () -> new CmdStubUndoable() {
+			@Override
+			public RegistrationPolicy getRegistrationPolicy() {
+				return RegistrationPolicy.NONE;
+			}
+		}, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.candoValue = true;
+		CommandsRegistry.getInstance().addCommand(binding.cmd);
+		binding.fsmStops();
+		assertTrue(CommandsRegistry.getInstance().getCommands().isEmpty());
+		assertTrue(binding.cmdHadEffects);
+	}
+
 	static class CmdStubUndoable extends CmdStub implements Undoable {
 		@Override
 		public boolean hadEffect() {
@@ -435,6 +619,11 @@ public class TestWidgetBinding {
 		public boolean unbind;
 		public boolean cancel;
 		public boolean endOrcancel;
+		public boolean then;
+		public boolean ifcannotdo;
+		public boolean execAsync;
+		public boolean first;
+		public boolean cmdHadEffects;
 
 		WidgetBindingStub(final boolean continuous, final Supplier<CmdStub> cmdCreation, final InteractionStub interaction) {
 			super(continuous, i -> cmdCreation.get(), interaction);
@@ -444,6 +633,12 @@ public class TestWidgetBinding {
 			super(continuous, cmdCreation, interaction);
 			conditionRespected = false;
 			mustCancel = false;
+		}
+
+		@Override
+		public void first() {
+			super.first();
+			first = true;
 		}
 
 		@Override
@@ -463,6 +658,25 @@ public class TestWidgetBinding {
 
 		@Override
 		protected void executeCmdAsync(final Command cmd) {
+			execAsync = true;
+		}
+
+		@Override
+		public void then() {
+			super.then();
+			then = true;
+		}
+
+		@Override
+		public void ifCannotExecuteCmd() {
+			super.ifCannotExecuteCmd();
+			ifcannotdo = true;
+		}
+
+		@Override
+		public void ifCmdHadEffects() {
+			super.ifCmdHadEffects();
+			cmdHadEffects = true;
 		}
 
 		@Override
