@@ -255,13 +255,14 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 				loggerBinding.log(Level.INFO, "Binding cancelled");
 			}
 
+			final boolean hadEffects = cmd.hadEffect();
 			cmd.cancel();
 			if(loggerCmd != null) {
 				loggerCmd.log(Level.INFO, "Command cancelled");
 			}
 			unbindCmdAttributes();
 
-			if(isContinuousCmdExec() && cmd.hadEffect()) {
+			if(isContinuousCmdExec() && hadEffects) {
 				cancelContinousWithEffectsCmd();
 			}
 

@@ -73,14 +73,17 @@ public class TestWidgetBindingIntegration {
 				}
 				@Override
 				public void ifCmdHadNoEffect() {
+					super.ifCmdHadNoEffect();
 					noEffect++;
 				}
 				@Override
 				public void ifCmdHadEffects() {
+					super.ifCmdHadEffects();
 					effects++;
 				}
 				@Override
 				public void ifCannotExecuteCmd() {
+					super.ifCannotExecuteCmd();
 					cannotExec++;
 				}
 				@Override
@@ -193,14 +196,17 @@ public class TestWidgetBindingIntegration {
 				}
 				@Override
 				public void ifCmdHadNoEffect() {
+					super.ifCmdHadNoEffect();
 					noEffect++;
 				}
 				@Override
 				public void ifCmdHadEffects() {
+					super.ifCmdHadEffects();
 					effects++;
 				}
 				@Override
 				public void ifCannotExecuteCmd() {
+					super.ifCannotExecuteCmd();
 					cannotExec++;
 				}
 				@Override

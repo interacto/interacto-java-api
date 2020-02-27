@@ -22,9 +22,11 @@ import io.github.interacto.fsm.CancelFSMException;
 import io.github.interacto.fsm.FSM;
 import io.github.interacto.interaction.InteractionData;
 import io.github.interacto.interaction.InteractionStub;
+import io.github.interacto.undo.Undoable;
 import io.reactivex.disposables.Disposable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -186,6 +188,13 @@ public class TestWidgetBinding {
 	}
 
 	@Test
+	void testInteractionStartsThrowMustCancelStateMachineExceptionWithLog() {
+		binding.mustCancel = true;
+		binding.logBinding(true);
+		assertThrows(CancelFSMException.class, () -> binding.fsmStarts());
+	}
+
+	@Test
 	void testInteractionStartsOk() throws CancelFSMException {
 		binding.conditionRespected = true;
 		binding.fsmStarts();
@@ -312,6 +321,15 @@ public class TestWidgetBinding {
 	}
 
 	@Test
+	void testClearEvents() {
+		final var interaction = Mockito.mock(InteractionStub.class);
+		Mockito.when(interaction.getFsm()).thenReturn(Mockito.mock(FSM.class));
+		binding = new WidgetBindingStub(false, CmdStub::new, interaction);
+		binding.clearEvents();
+		Mockito.verify(interaction, Mockito.times(1)).fullReinit();
+	}
+
+	@Test
 	void testSetGetAsync() {
 		binding.setAsync(true);
 		assertTrue(binding.isAsync());
@@ -324,9 +342,99 @@ public class TestWidgetBinding {
 		assertFalse(binding.isAsync());
 	}
 
+	@Test
+	void testCancelInteraction() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.logBinding(true);
+		binding.logCmd(true);
+		binding.fsmStarts();
+		final var cmd = binding.cmd;
+		binding.fsmCancels();
+		assertEquals(Command.CmdStatus.CANCELLED, cmd.getStatus());
+		assertTrue(binding.unbind);
+		assertTrue(binding.cancel);
+		assertTrue(binding.endOrcancel);
+		assertEquals(1, binding.timeCancelled);
+		assertNull(binding.cmd);
+	}
+
+	@Test
+	void testCancelInteractionTwoTimes() throws CancelFSMException {
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmCancels();
+		binding.fsmStarts();
+		binding.fsmCancels();
+		assertEquals(2, binding.timeCancelled);
+	}
+
+	@Test
+	void testCancelInteractionContinuous() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.cmd.done();
+		assertThrows(MustBeUndoableCmdException.class, () -> binding.fsmCancels());
+	}
+
+	@Test
+	void testCancelInteractionContinuousNoEffect() throws CancelFSMException {
+		binding = new WidgetBindingStub(true, CmdStub::new, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		final var cmd = binding.cmd;
+		binding.fsmCancels();
+		assertEquals(Command.CmdStatus.CANCELLED, cmd.getStatus());
+	}
+
+	@Test
+	void testCancelInteractionContinuousUndoable() throws CancelFSMException {
+		final var cmd = Mockito.spy(new CmdStubUndoable());
+		binding = new WidgetBindingStub(true, () -> cmd, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.logCmd(true);
+		binding.fsmStarts();
+		binding.fsmCancels();
+		Mockito.verify(cmd, Mockito.times(1)).undo();
+	}
+
+	@Test
+	void testCancelInteractionContinuousUndoableNoLog() throws CancelFSMException {
+		final var cmd = Mockito.spy(new CmdStubUndoable());
+		binding = new WidgetBindingStub(true, () -> cmd, new InteractionStub());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		binding.fsmCancels();
+		Mockito.verify(cmd, Mockito.times(1)).undo();
+	}
+
+	static class CmdStubUndoable extends CmdStub implements Undoable {
+		@Override
+		public boolean hadEffect() {
+			return true;
+		}
+		@Override
+		public boolean canDo() {
+			return true;
+		}
+		@Override
+		public void undo() {
+		}
+		@Override
+		public void redo() {
+		}
+		@Override
+		public String getUndoName(final ResourceBundle bundle) {
+			return "";
+		}
+	}
+
 	static class WidgetBindingStub extends WidgetBindingImpl<CmdStub, InteractionStub, InteractionData> {
 		public boolean conditionRespected;
 		public boolean mustCancel;
+		public boolean unbind;
+		public boolean cancel;
+		public boolean endOrcancel;
 
 		WidgetBindingStub(final boolean continuous, final Supplier<CmdStub> cmdCreation, final InteractionStub interaction) {
 			super(continuous, i -> cmdCreation.get(), interaction);
@@ -350,10 +458,23 @@ public class TestWidgetBinding {
 
 		@Override
 		protected void unbindCmdAttributes() {
+			unbind = true;
 		}
 
 		@Override
 		protected void executeCmdAsync(final Command cmd) {
+		}
+
+		@Override
+		public void cancel() {
+			super.cancel();
+			cancel = true;
+		}
+
+		@Override
+		public void endOrCancel() {
+			super.endOrCancel();
+			endOrcancel = true;
 		}
 	}
 }
