@@ -10,7 +10,6 @@ module interacto.java.api {
 	exports io.github.interacto.fsm;
 	exports io.github.interacto.instrument;
 	exports io.github.interacto.interaction;
-	exports io.github.interacto.logging;
 	exports io.github.interacto.properties;
 	exports io.github.interacto.undo;
 }
