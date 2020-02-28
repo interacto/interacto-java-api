@@ -66,11 +66,11 @@ public class ErrorCatcher {
 
 	/**
 	 * Gathers exceptions. The notifier is then notified of the exceptions (if defined).
-	 * @param exception The errors to gather.
+	 * @param throwable The errors to gather.
 	 */
-	public void reportError(final Exception exception) {
-		if(exception != null) {
-			notifier.onNext(exception);
+	public void reportError(final Throwable throwable) {
+		if(throwable != null) {
+			notifier.onNext(throwable);
 		}
 	}
 }
