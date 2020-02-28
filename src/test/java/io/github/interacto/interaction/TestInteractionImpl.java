@@ -59,6 +59,7 @@ public class TestInteractionImpl {
 		if(interaction.currThrottleTimeoutFuture != null) {
 			interaction.currThrottleTimeoutFuture.cancel(true);
 		}
+		interaction.uninstall();
 	}
 
 	@Nested
@@ -246,7 +247,7 @@ public class TestInteractionImpl {
 		final Object evt2 = "foo";
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
-		interaction.setThrottleTimeout(500);
+		interaction.setThrottleTimeout(1000);
 		final InteractionStub spy = Mockito.spy(interaction);
 		spy.processEvent(evt1); // 1
 		spy.processEvent(new Object()); // ignored

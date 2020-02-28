@@ -48,12 +48,12 @@ public class TimeoutTransition<E> extends Transition<E> {
 	public void startTimeout() {
 		final long time = TimeoutTransition.this.timeoutDuration.getAsLong();
 		// If incorrect duration value, no thread created
-		if(time <= 0L) {
-			TimeoutTransition.this.src.getFSM().onTimeout();
-			return;
-		}
-
 		if(timeoutThread == null) {
+			if(time <= 0L) {
+				TimeoutTransition.this.src.getFSM().onTimeout();
+				return;
+			}
+
 			timeoutThread = new Thread(() -> {
 				try {
 					// Sleeping the thread.
