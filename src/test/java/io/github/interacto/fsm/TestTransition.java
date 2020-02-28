@@ -14,12 +14,17 @@
  */
 package io.github.interacto.fsm;
 
+import io.github.interacto.error.ErrorCatcher;
+import io.reactivex.disposables.Disposable;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestTransition {
 	Transition<StubEvent> tr;
@@ -67,6 +72,15 @@ public class TestTransition {
 		void testSrcStateTransitionAdded() {
 			assertEquals(1, state1.transitions.size());
 			assertEquals(tr, state1.transitions.get(0));
+		}
+
+		@Test
+		void testUninstall() {
+			final List<Throwable> errors = new ArrayList<>();
+			final Disposable disposable = ErrorCatcher.getInstance().getErrors().subscribe(errors::add);
+			tr.uninstall();
+			disposable.dispose();
+			assertTrue(errors.isEmpty());
 		}
 	}
 }
