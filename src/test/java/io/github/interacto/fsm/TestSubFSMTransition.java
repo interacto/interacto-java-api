@@ -15,7 +15,9 @@
 package io.github.interacto.fsm;
 
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -88,6 +90,12 @@ class TestSubFSMTransition {
 	}
 
 	@Test
+	void testExecuteNoTransition() {
+		final Optional<InputState<StubEvent>> state = tr.execute(new StubSubEvent2());
+		assertFalse(state.isPresent());
+	}
+
+	@Test
 	void testExecuteFirstEventKO() {
 		final Optional<InputState<StubEvent>> state = tr.execute(new StubSubEvent2());
 		assertFalse(state.isPresent());
@@ -103,5 +111,83 @@ class TestSubFSMTransition {
 	void testExecuteEnterTgtState() throws CancelFSMException {
 		tr.execute(new StubSubEvent1());
 		Mockito.verify(s2, Mockito.times(1)).enter();
+	}
+
+	@Test
+	void testUninstall() {
+		fsm = Mockito.mock(FSM.class);
+		tr = new SubFSMTransition<>(s1, s2, fsm);
+		tr.uninstall();
+		Mockito.verify(fsm, Mockito.times(1)).uninstall();
+	}
+
+	@Test
+	void testGetAcceptedEvents() {
+		final var tr2 = Mockito.mock(Transition.class);
+		fsm.initState.addTransition(tr2);
+		Mockito.when(tr2.getAcceptedEvents()).thenReturn(Set.of("foo", "bar"));
+		final Set<Object> evts = tr.getAcceptedEvents();
+		assertEquals(3, evts.size());
+		assertTrue(evts.contains("foo"));
+		assertTrue(evts.contains("bar"));
+		assertTrue(evts.contains(fsm.initState.getTransitions().get(0).getAcceptedEvents().iterator().next()));
+	}
+
+	@Nested
+	class DoubleClickFSMExample {
+		DoubleClickFSM dbleFSM;
+
+		@BeforeEach
+		void setUp() {
+			dbleFSM = new DoubleClickFSM();
+		}
+
+		@Test
+		void testPress() {
+			dbleFSM.process("press");
+			assertEquals("pressed", dbleFSM.getCurrentState().getName());
+		}
+
+		@Test
+		void testClick() {
+			final var dbleFSM = new DoubleClickFSM();
+			dbleFSM.process("press");
+			dbleFSM.process("release");
+			assertEquals("clicked", dbleFSM.getCurrentState().getName());
+		}
+
+		@Test
+		void testClickPress() {
+			final var dbleFSM = new DoubleClickFSM();
+			dbleFSM.process("press");
+			dbleFSM.process("release");
+			dbleFSM.process("press");
+			assertEquals("pressed", dbleFSM.getCurrentState().getName());
+		}
+
+		@Test
+		void testClickClick() throws CancelFSMException {
+			final FSMHandler handler = Mockito.mock(FSMHandler.class);
+			final var dbleFSM = new DoubleClickFSM();
+			dbleFSM.firstClickFSM.addHandler(handler);
+			dbleFSM.sndClick.addHandler(handler);
+			dbleFSM.process("press");
+			dbleFSM.process("release");
+			dbleFSM.process("press");
+			dbleFSM.process("release");
+			assertEquals("init", dbleFSM.getCurrentState().getName());
+			Mockito.verify(handler, Mockito.times(2)).fsmStops();
+		}
+
+		@Test
+		void testPressMove() {
+			final FSMHandler handler = Mockito.mock(FSMHandler.class);
+			final var dbleFSM = new DoubleClickFSM();
+			dbleFSM.firstClickFSM.addHandler(handler);
+			dbleFSM.process("press");
+			dbleFSM.process("move");
+			assertEquals("init", dbleFSM.getCurrentState().getName());
+			Mockito.verify(handler, Mockito.times(1)).fsmCancels();
+		}
 	}
 }

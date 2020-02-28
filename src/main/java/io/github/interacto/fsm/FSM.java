@@ -349,7 +349,7 @@ public class FSM<E> {
 	 */
 	protected void notifyHandlerOnStop() throws CancelFSMException {
 		try {
-			for(final FSMHandler handler : handlers) {
+			for(final FSMHandler handler : new ArrayList<>(handlers)) {
 				handler.fsmStops();
 			}
 		}catch(final CancelFSMException ex) {
@@ -362,7 +362,7 @@ public class FSM<E> {
 	 * Notifies handler that the interaction is cancelled.
 	 */
 	protected void notifyHandlerOnCancel() {
-		handlers.forEach(handler -> handler.fsmCancels());
+		new ArrayList<>(handlers).forEach(handler -> handler.fsmCancels());
 	}
 
 	public Set<State<E>> getStates() {

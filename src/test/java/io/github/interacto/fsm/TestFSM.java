@@ -675,6 +675,31 @@ public class TestFSM {
 		}
 
 		@Test
+		void testExitKOStateType() {
+			final InputState<StubEvent> stateKO = new InputState<>() {
+				@Override
+				public void enter() {
+				}
+				@Override
+				public String getName() {
+					return "foo";
+				}
+				@Override
+				public FSM<StubEvent> getFSM() {
+					return mainfsm;
+				}
+			};
+			mainfsm.addState(stateKO);
+			mainfsm.initState.transitions.clear();
+			new SubFSMTransition<>(mainfsm.initState, stateKO, fsm);
+			mainfsm.process(new StubSubEvent1());
+			mainfsm.process(new StubSubEvent2());
+			mainfsm.process(new StubSubEvent1());
+			assertEquals("sub2", mainfsm.getCurrentState().getName());
+			assertEquals(fsm.initState, fsm.getCurrentState());
+		}
+
+		@Test
 		void testExitSubGoIntoTerminal() throws CancelFSMException {
 			final TerminalState<StubEvent> terminal = new TerminalState<>(mainfsm, "terminal1");
 			mainfsm.addState(terminal);

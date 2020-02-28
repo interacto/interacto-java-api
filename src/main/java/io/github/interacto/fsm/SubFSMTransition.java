@@ -73,15 +73,14 @@ public class SubFSMTransition<E> extends Transition<E> {
 
 	@Override
 	public Optional<InputState<E>> execute(final E event) {
-		if(isGuardOK(event)) {
+		final Optional<Transition<E>> transition = findTransition(event);
+
+		if(transition.isPresent()) {
 			src.getFSM().stopCurrentTimeout();
-			final Optional<Transition<E>> transition = findTransition(event);
-			if(transition.isPresent()) {
-				subFSM.addHandler(subFSMHandler);
-				src.getFSM().currentSubFSM = subFSM;
-				subFSM.process(event);
-				return Optional.of(transition.get().tgt);
-			}
+			subFSM.addHandler(subFSMHandler);
+			src.getFSM().currentSubFSM = subFSM;
+			subFSM.process(event);
+			return Optional.of(transition.get().tgt);
 		}
 
 		return Optional.empty();
@@ -98,12 +97,20 @@ public class SubFSMTransition<E> extends Transition<E> {
 	}
 
 	private Optional<Transition<E>> findTransition(final E event) {
-		return subFSM.initState.transitions.stream().filter(tr -> tr.accept(event)).findFirst();
+		return subFSM.initState.transitions
+			.stream()
+			.filter(tr -> tr.accept(event))
+			.findFirst();
 	}
 
 	@Override
 	public Set<Object> getAcceptedEvents() {
-		return subFSM.initState.getTransitions().stream().map(tr -> tr.getAcceptedEvents()).flatMap(s -> s.stream()).collect(Collectors.toSet());
+		return subFSM.initState
+			.getTransitions()
+			.stream()
+			.map(tr -> tr.getAcceptedEvents())
+			.flatMap(s -> s.stream())
+			.collect(Collectors.toSet());
 	}
 
 	@Override
