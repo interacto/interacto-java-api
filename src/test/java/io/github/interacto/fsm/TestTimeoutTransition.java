@@ -48,8 +48,11 @@ class TestTimeoutTransition {
 	}
 
 	@AfterEach
-	void tearDown() {
-		getTimeoutThreads().forEach(t -> t.interrupt());
+	void tearDown() throws InterruptedException {
+		for(final Thread th : getTimeoutThreads()) {
+			th.interrupt();
+			th.join();
+		};
 	}
 
 	List<Thread> getTimeoutThreads() {
