@@ -21,6 +21,8 @@ import io.github.interacto.fsm.StdState;
 import io.reactivex.subjects.PublishSubject;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
@@ -285,12 +287,22 @@ public class TestInteractionImpl {
 
 	@Test
 	void testProcessWithThrottlingShutdown() {
-		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(10000);
 		interaction.processEvent(new Object());
 		interaction.uninstall();
 		assertTrue(interaction.executor.isShutdown());
+		assertTrue(interaction.currThrottleTimeoutFuture.isDone());
+	}
+
+	@Test
+	void testProcessWithThrottlingShutdownCrash() throws InterruptedException {
+		interaction.executor = Mockito.mock(ExecutorService.class);
+		Mockito.when(interaction.executor.awaitTermination(5, TimeUnit.SECONDS)).thenThrow(InterruptedException.class);
+		interaction.setActivated(true);
+		interaction.setThrottleTimeout(10000);
+		interaction.processEvent(new Object());
+		interaction.uninstall();
 	}
 
 	@Test

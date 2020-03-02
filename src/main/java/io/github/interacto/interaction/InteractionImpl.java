@@ -21,6 +21,7 @@ import io.reactivex.disposables.Disposable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -223,6 +224,11 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		logger = null;
 		if(executor != null) {
 			executor.shutdownNow();
+			try {
+				executor.awaitTermination(5, TimeUnit.SECONDS);
+			}catch(final InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			}
 		}
 	}
 }
