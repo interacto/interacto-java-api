@@ -299,7 +299,7 @@ public class TestInteractionImpl {
 	}
 
 	@Test
-	void testProcessWithThrottlingShutdownMock() throws InterruptedException {
+	void testProcessWithThrottlingShutdownMock() throws InterruptedException, ExecutionException {
 		final ThreadService mock = Mockito.mock(ThreadService.class);
 		final Thread mockThread = Mockito.mock(Thread.class);
 		Mockito.when(mock.currentThread()).thenReturn(mockThread);
@@ -308,7 +308,7 @@ public class TestInteractionImpl {
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(10000);
 		interaction.processEvent(new Object());
-		interaction.uninstall();
+		interaction.currThrottleTimeoutFuture.get();
 		Mockito.verify(mock, Mockito.times(1)).currentThread();
 		Mockito.verify(mockThread, Mockito.times(1)).interrupt();
 	}
