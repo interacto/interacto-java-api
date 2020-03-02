@@ -190,46 +190,6 @@
                 </executions>
             </plugin>
 
-<!--            <plugin>-->
-<!--                <groupId>org.jacoco</groupId>-->
-<!--                <artifactId>jacoco-maven-plugin</artifactId>-->
-<!--                <version>0.8.5</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>pre-unit-test</id>-->
-<!--                        <goals>-->
-<!--                            <goal>prepare-agent</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                    <execution>-->
-<!--                        <id>post-unit-test</id>-->
-<!--                        <phase>test</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>report</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <rules>-->
-<!--                        <rule>-->
-<!--                            <element>CLASS</element>-->
-<!--                            <limits>-->
-<!--                                <limit>-->
-<!--                                    <counter>INSTRUCTION</counter>-->
-<!--                                    <value>COVEREDRATIO</value>-->
-<!--                                    <minimum>1.0</minimum>-->
-<!--                                </limit>-->
-<!--                                <limit>-->
-<!--                                    <counter>LINE</counter>-->
-<!--                                    <value>COVEREDRATIO</value>-->
-<!--                                    <minimum>1.0</minimum>-->
-<!--                                </limit>-->
-<!--                            </limits>-->
-<!--                        </rule>-->
-<!--                    </rules>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
