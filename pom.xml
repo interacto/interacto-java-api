@@ -73,7 +73,7 @@
     </repositories>
 
     <build>
-        <defaultGoal>clean verify install</defaultGoal>
+        <defaultGoal>clean install</defaultGoal>
 
         <plugins>
             <plugin>
