@@ -43,9 +43,11 @@ public class TestInteractionImpl {
 	FSM<Object> fsm;
 	PublishSubject<Map.Entry<OutputState<Object>, OutputState<Object>>> currentStateObs;
 	OutputState<Object> currentState;
+	ThreadService mementoThreadService;
 
 	@BeforeEach
 	void setUp() {
+		mementoThreadService = ThreadService.getInstance();
 		currentStateObs = PublishSubject.create();
 		fsm = Mockito.mock(FSM.class);
 		Mockito.when(fsm.currentState()).thenReturn(currentStateObs);
@@ -57,6 +59,7 @@ public class TestInteractionImpl {
 
 	@AfterEach
 	void tearDown() {
+		ThreadService.setInstance(mementoThreadService);
 		InteractionImpl.setLogger(formerLog);
 		if(interaction.currThrottleTimeoutFuture != null) {
 			interaction.currThrottleTimeoutFuture.cancel(true);
@@ -296,7 +299,38 @@ public class TestInteractionImpl {
 	}
 
 	@Test
+	void testProcessWithThrottlingShutdownMock() throws InterruptedException {
+		final ThreadService mock = Mockito.mock(ThreadService.class);
+		final Thread mockThread = Mockito.mock(Thread.class);
+		Mockito.when(mock.currentThread()).thenReturn(mockThread);
+		Mockito.doThrow(InterruptedException.class).when(mock).sleep(Mockito.anyLong());
+		ThreadService.setInstance(mock);
+		interaction.setActivated(true);
+		interaction.setThrottleTimeout(10000);
+		interaction.processEvent(new Object());
+		interaction.uninstall();
+		Mockito.verify(mock, Mockito.times(1)).currentThread();
+		Mockito.verify(mockThread, Mockito.times(1)).interrupt();
+	}
+
+	@Test
 	void testProcessWithThrottlingShutdownCrash() throws InterruptedException {
+		final ThreadService mock = Mockito.mock(ThreadService.class);
+		final Thread mockThread = Mockito.mock(Thread.class);
+		Mockito.when(mock.currentThread()).thenReturn(mockThread);
+		interaction.executor = Mockito.mock(ExecutorService.class);
+		Mockito.when(interaction.executor.awaitTermination(5, TimeUnit.SECONDS)).thenThrow(InterruptedException.class);
+		interaction.setActivated(true);
+		interaction.setThrottleTimeout(10000);
+		interaction.processEvent(new Object());
+		ThreadService.setInstance(mock);
+		interaction.uninstall();
+		Mockito.verify(mock, Mockito.times(1)).currentThread();
+		Mockito.verify(mockThread, Mockito.times(1)).interrupt();
+	}
+
+	@Test
+	void testProcessWithThrottlingShutdownCrashRealCase() throws InterruptedException {
 		interaction.executor = Mockito.mock(ExecutorService.class);
 		Mockito.when(interaction.executor.awaitTermination(5, TimeUnit.SECONDS)).thenThrow(InterruptedException.class);
 		interaction.setActivated(true);

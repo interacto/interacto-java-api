@@ -15,6 +15,7 @@
 package io.github.interacto.fsm;
 
 import io.github.interacto.error.ErrorCatcher;
+import io.github.interacto.interaction.ThreadService;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
@@ -57,13 +58,13 @@ public class TimeoutTransition<E> extends Transition<E> {
 			timeoutThread = new Thread(() -> {
 				try {
 					// Sleeping the thread.
-					Thread.sleep(time);
+					ThreadService.getInstance().sleep(time);
 					// There is a timeoutDuration and the interaction must be notified of that.
 					// Notifying the interaction of the timeoutDuration.
 					timeouted = true;
 					TimeoutTransition.this.src.getFSM().onTimeout();
 				}catch(final InterruptedException ex) {
-					Thread.currentThread().interrupt();
+					ThreadService.getInstance().currentThread().interrupt();
 				}
 			}, TIMEOUT_THREAD_NAME_BASE + System.currentTimeMillis());
 			timeoutThread.setUncaughtExceptionHandler((th, ex) -> ErrorCatcher.getInstance().reportError(ex));

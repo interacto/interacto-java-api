@@ -126,7 +126,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		// Executing a new timeout for the throttling operation.
 		currThrottleTimeoutFuture = executor.submit(() -> {
 			try {
-				Thread.sleep(throttleTimeout);
+				ThreadService.getInstance().sleep(throttleTimeout);
 				E evt = null;
 				if(throttleCounter.getAndSet(0L) > 0L) {
 					evt = currentThrottledEvent;
@@ -137,7 +137,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 					runInUIThread(() -> directEventProcess(evtToProcess));
 				}
 			}catch(final InterruptedException ex) {
-				Thread.currentThread().interrupt();
+				ThreadService.getInstance().currentThread().interrupt();
 			}
 		});
 	}
@@ -227,7 +227,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 			try {
 				executor.awaitTermination(5, TimeUnit.SECONDS);
 			}catch(final InterruptedException ex) {
-				Thread.currentThread().interrupt();
+				ThreadService.getInstance().currentThread().interrupt();
 			}
 		}
 	}
