@@ -102,7 +102,7 @@ public interface WidgetBinding<C extends Command> extends FSMHandler {
 	boolean isRunning();
 
 	/**
-	 * States whether the interaction must continue to run while the condition of the binding is not fulfilled at the interaction start.
+	 * @return States whether the interaction must continue to run while the condition of the binding is not fulfilled at the interaction start.
 	 */
 	boolean isStrictStart();
 
@@ -111,10 +111,14 @@ public interface WidgetBinding<C extends Command> extends FSMHandler {
 	 */
 	boolean isContinuousCmdExec();
 
-	/** Uninstall the binding. The binding cannot be used after that. */
+	/**
+	 * Uninstall the binding. The binding cannot be used after that.
+	 * */
 	void uninstallBinding();
 
-	/** An RX observable objects that will provide the commands produced by the binding. */
+	/**
+	 * @return An RX observable objects that will provide the commands produced by the binding.
+	 * */
 	Observable<C> produces();
 
 	/**

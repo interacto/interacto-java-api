@@ -30,6 +30,7 @@ public class Zoom extends PositionCommand {
 
 	/**
 	 * Initialises a Zoom command.
+	 * @param zoomable The object to zoom.
 	 */
 	public Zoom(final Zoomable zoomable) {
 		super();

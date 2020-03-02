@@ -149,6 +149,7 @@ public class FSM<E> {
 
 	/**
 	 * Terminates the state machine.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the stopping step.
 	 */
 	protected void onTerminating() throws CancelFSMException {
 		if(logger != null) {
@@ -162,7 +163,9 @@ public class FSM<E> {
 		processRemainingEvents();
 	}
 
-	/** Cancels the state machine. */
+	/**
+	 * Cancels the state machine.
+	 * */
 	protected void onCancelling() {
 		if(logger != null) {
 			logger.log(Level.INFO, "FSM cancelled");
@@ -177,6 +180,7 @@ public class FSM<E> {
 
 	/**
 	 * Starts the state machine.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the starting step.
 	 */
 	public void onStarting() throws CancelFSMException {
 		if(logger != null) {
@@ -189,6 +193,7 @@ public class FSM<E> {
 
 	/**
 	 * Updates the state machine.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the updating step.
 	 */
 	public void onUpdating() throws CancelFSMException {
 		if(started) {
@@ -318,6 +323,7 @@ public class FSM<E> {
 
 	/**
 	 * Notifies handler that the interaction starts.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the starting step.
 	 */
 	protected void notifyHandlerOnStart() throws CancelFSMException {
 		try {
@@ -332,6 +338,7 @@ public class FSM<E> {
 
 	/**
 	 * Notifies handler that the interaction updates.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the updating step.
 	 */
 	protected void notifyHandlerOnUpdate() throws CancelFSMException {
 		try {
@@ -346,6 +353,7 @@ public class FSM<E> {
 
 	/**
 	 * Notifies handler that the interaction stops.
+	 * @throws CancelFSMException If the interaction is cancelled by a handler during the stopping step.
 	 */
 	protected void notifyHandlerOnStop() throws CancelFSMException {
 		try {

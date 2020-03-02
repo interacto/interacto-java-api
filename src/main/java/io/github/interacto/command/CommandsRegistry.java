@@ -64,7 +64,9 @@ public class CommandsRegistry {
 		cmdPublisher = PublishSubject.create();
 	}
 
-	/** An RX observable objects that will provide the commands produced by the binding. */
+	/**
+	 * @return An RX observable objects that will provide the commands produced by the binding.
+	 * */
 	public Observable<Command> commands() {
 		return cmdPublisher;
 	}
