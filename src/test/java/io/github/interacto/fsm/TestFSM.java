@@ -280,6 +280,13 @@ public class TestFSM {
 	}
 
 	@Test
+	void testRemoveHandler() {
+		fsm.addHandler(handler);
+		fsm.removeHandler(handler);
+		assertTrue(fsm.handlers.isEmpty());
+	}
+
+	@Test
 	void testAddRemainingNull() {
 		fsm.addRemaningEventsToProcess(null);
 		assertTrue(fsm.eventsToProcess.isEmpty());
@@ -524,9 +531,10 @@ public class TestFSM {
 	class TestWithTimeoutTransition {
 		StdState<StubEvent> std;
 		StdState<StubEvent> std2;
+		StdState<StubEvent> std3;
 		TerminalState<StubEvent> terminal;
-		Transition<StubEvent> iToS;
-		Transition<StubEvent> sToT;
+		StubTransitionOK iToS;
+		StubTransitionOK sToT;
 		TimeoutTransition<StubEvent> timeout;
 
 		@BeforeEach
@@ -534,9 +542,11 @@ public class TestFSM {
 			fsm.addHandler(handler);
 			std = new StdState<>(fsm, "s1");
 			std2 = new StdState<>(fsm, "s2");
+			std3 = new StdState<>(fsm, "s3");
 			terminal = new TerminalState<>(fsm, "t1");
 			iToS = new StubTransitionOK(fsm.initState, std);
 			sToT = new StubTransitionOK(std, terminal);
+			new SubStubTransition2(std, std3, true);
 			timeout = new TimeoutTransition<>(std, std2, () -> 100L);
 			new StubTransitionOK(std2, std);
 			fsm.addState(std);
@@ -566,9 +576,14 @@ public class TestFSM {
 			fsm.log(true);
 			fsm.process(new StubEvent());
 			Thread.sleep(10);
-			fsm.process(new StubEvent());
+			sToT.guard = false;
+			final var spy = Mockito.spy(fsm.currentTimeout);
+			fsm.currentTimeout = spy;
+			fsm.process(new StubSubEvent2());
 			Thread.sleep(100);
-			assertEquals(fsm.initState, fsm.getCurrentState());
+			assertEquals(std3, fsm.getCurrentState());
+			assertNull(fsm.currentTimeout);
+			Mockito.verify(spy, Mockito.times(1)).stopTimeout();
 		}
 
 		@Test

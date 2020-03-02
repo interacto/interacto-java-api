@@ -18,7 +18,7 @@ import java.util.Set;
 import org.mockito.internal.util.collections.Sets;
 
 public class StubTransitionOK extends Transition<StubEvent> {
-	protected boolean guard;
+	public boolean guard;
 
 	protected StubTransitionOK(final OutputState<StubEvent> srcState, final InputState<StubEvent> tgtState) {
 		this(srcState, tgtState, true);
