@@ -47,9 +47,9 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected final AtomicLong throttleCounter;
 	protected E currentThrottledEvent;
 	/** The current throttle thread in progress. */
-	Future<?> currThrottleTimeoutFuture;
-	private ExecutorService executor;
-	private final Disposable disposable;
+	protected Future<?> currThrottleTimeoutFuture;
+	protected ExecutorService executor;
+	protected final Disposable disposable;
 	private boolean consumeEvents;
 
 	protected InteractionImpl(final F fsm) {

@@ -287,11 +287,10 @@ public class TestInteractionImpl {
 	void testProcessWithThrottlingShutdown() {
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
-		interaction.setThrottleTimeout(1000);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(new Object());
-		spy.uninstall();
-		Mockito.verify(spy, Mockito.times(1)).consumeEvent(Mockito.any());
+		interaction.setThrottleTimeout(10000);
+		interaction.processEvent(new Object());
+		interaction.uninstall();
+		assertTrue(interaction.executor.isShutdown());
 	}
 
 	@Test
@@ -320,6 +319,7 @@ public class TestInteractionImpl {
 		currentStateObs.onNext(Map.entry(Mockito.mock(OutputState.class), Mockito.mock(OutputState.class)));
 		assertFalse(interaction.isActivated());
 		assertTrue(ok.get());
+		assertTrue(interaction.disposable.isDisposed());
 	}
 
 	@Test
