@@ -130,7 +130,7 @@ public class TestWidgetBinding {
 	}
 
 	@Test
-	void testExecuteCrashAndInteractionStops() throws CancelFSMException {
+	void testExecuteCrashAndInteractionStops() {
 		errorStream.dispose();
 		final IllegalArgumentException ex = new IllegalArgumentException();
 		final Supplier<CmdStub> supplier = () -> {
@@ -149,7 +149,17 @@ public class TestWidgetBinding {
 
 	@Test
 	void testNotRunning() {
-		Assertions.assertFalse(binding.isRunning());
+		assertFalse(binding.isRunning());
+	}
+
+	@Test
+	void testIsRunning() {
+		final var interaction = Mockito.mock(InteractionStub.class);
+		final var fsm = Mockito.mock(FSM.class);
+		Mockito.when(interaction.getFsm()).thenReturn(fsm);
+		Mockito.when(interaction.isRunning()).thenReturn(true);
+		binding = new WidgetBindingStub(false, CmdStub::new, interaction);
+		assertTrue(binding.isRunning());
 	}
 
 	@Test
