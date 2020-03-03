@@ -21,6 +21,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.LongSupplier;
 
+/**
+ * A timeout transition is an FSM transition that is not executed by an event:
+ * the FSM goes through such a transition on a timeout.
+ * @param <E> The type of events the FSM processes.
+ */
 public class TimeoutTransition<E> extends Transition<E> {
 	/** The base name (starts with) of the threads created for the timeout. */
 	public static final String TIMEOUT_THREAD_NAME_BASE = "malai-timeout-transition-";

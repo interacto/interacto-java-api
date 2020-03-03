@@ -16,6 +16,10 @@ package io.github.interacto.fsm;
 
 import java.util.List;
 
+/**
+ * Defines a type of state that can produce as output events.
+ * @param <E> The type of events the FSM processes.
+ */
 public interface OutputState<E> extends State<E> {
 	void exit() throws CancelFSMException;
 

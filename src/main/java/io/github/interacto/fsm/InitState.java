@@ -14,6 +14,11 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * An FSM state.
+ * An initial state is the unique state that can start an FSM.
+ * @param <E> The type of events the FSM processes.
+ */
 public class InitState<E> extends OutputStateImpl<E> {
 	protected InitState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);

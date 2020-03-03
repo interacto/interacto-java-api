@@ -14,6 +14,10 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * Defines a handler that can register an FSM to receive notifications
+ * about changes in the state of the FSM.
+ */
 public interface FSMHandler {
 	/**
 	 * When the FSM starts.

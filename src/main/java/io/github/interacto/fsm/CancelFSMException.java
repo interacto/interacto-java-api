@@ -14,5 +14,8 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * The exception an FSM will throw to cancel the user interaction.
+ */
 public class CancelFSMException extends Exception {
 }

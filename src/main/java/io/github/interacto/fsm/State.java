@@ -14,6 +14,10 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * The base type of an FSM state.
+ * @param <E> The type of events the FSM processes.
+ */
 public interface State<E> {
 	String getName();
 

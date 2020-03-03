@@ -57,5 +57,8 @@ public interface Instrument<T extends WidgetBinding<? extends Command>> extends 
 	 */
 	void setActivated(final boolean activated);
 
+	/**
+	 * Uninstall all the bindings of the instrument.
+	 */
 	void uninstallBindings();
 }

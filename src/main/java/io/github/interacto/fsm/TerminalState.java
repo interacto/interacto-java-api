@@ -14,6 +14,11 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * An FSM state.
+ * A terminal state ends normally an FSM.
+ * @param <E> The type of events the FSM processes.
+ */
 public class TerminalState<E> extends StateImpl<E> implements InputState<E> {
 	public TerminalState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);

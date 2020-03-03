@@ -14,6 +14,11 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * A state of an FSM.
+ * A cancelling state cancels the FSM of a user interaction.
+ * @param <E> The type of events the FSM processes.
+ */
 public class CancellingState<E> extends StateImpl<E> implements InputState<E> {
 	public CancellingState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);

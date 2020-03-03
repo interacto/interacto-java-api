@@ -14,6 +14,13 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * An FSM state.
+ * A standard state can compose an FSM.
+ * They do not start, stop, cancel an FSM.
+ * They accept input and ouptut events.
+ * @param <E> The type of events the FSM processes.
+ */
 public class StdState<E> extends OutputStateImpl<E> implements InputState<E> {
 	public StdState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);

@@ -26,6 +26,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * The base implementation of a user interaction.
+ * @param <D> The type of the interaction data.
+ * @param <E> The type of the events that the interaction will process.
+ * @param <F> The type of the FSM.
+ */
 public abstract class InteractionImpl<D extends InteractionData, E, F extends FSM<E>> {
 	static Logger defaultLogger = Logger.getLogger(InteractionImpl.class.getName());
 
@@ -71,18 +77,31 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		consumeEvents = false;
 	}
 
+	/**
+	 * @return The interaction data of the user interaction. Cannot be null.
+	 */
 	public abstract D getData();
 
+	/**
+	 * Sets the throttle timeout the interaction will use.
+	 * @param timeout The throttle value.
+	 */
 	public void setThrottleTimeout(final long timeout) {
 		throttleTimeout = timeout;
 	}
 
 	protected abstract void updateEventsRegistered(final OutputState<E> newState, final OutputState<E> oldState);
 
+	/**
+	 * @return Whether the user interaction is running.
+	 */
 	public boolean isRunning() {
 		return activated && !(fsm.getCurrentState() instanceof InitState<?>);
 	}
 
+	/**
+	 * Reinitialises the user interaction
+	 */
 	public void fullReinit() {
 		fsm.fullReinit();
 	}
@@ -96,6 +115,11 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 
 	protected abstract void consumeEvent(final E event);
 
+	/**
+	 * Sets whether the user interaction will consumes the processed UI events.
+	 * 				This is related to the event.consume() method.
+	 * @param consumeEvents True: the processed events will be consumed.
+	 */
 	public void setConsumeEvents(final boolean consumeEvents) {
 		this.consumeEvents = consumeEvents;
 	}
@@ -171,6 +195,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		}
 	}
 
+	/**
+	 * Processes the given UI event.
+	 * @param event The event to process.
+	 */
 	public void processEvent(final E event) {
 		if(isActivated()) {
 			if(throttleTimeout <= 0L || checkThrottlingEvent(event)) {
@@ -179,6 +207,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		}
 	}
 
+	/**
+	 * Sets the logging of the user interaction.
+	 * @param log True: the user interaction will log information.
+	 */
 	public void log(final boolean log) {
 		if(log) {
 			if(logger == null) {
@@ -191,10 +223,19 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		fsm.log(log);
 	}
 
+	/**
+	 * @return True if the user interaction is activated.
+	 */
 	public boolean isActivated() {
 		return activated;
 	}
 
+	/**
+	 * Sets whether the user interaction is activated.
+	 * 				When not activated, a user interaction does not process
+	 * 				input events any more.
+	 * @param activated True: the user interaction will be activated.
+	 */
 	public void setActivated(final boolean activated) {
 		if(logger != null) {
 			logger.log(Level.INFO, "Interaction activation: " + activated);
@@ -207,6 +248,9 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		}
 	}
 
+	/**
+	 * @return The FSM of the user interaction.
+	 */
 	public F getFsm() {
 		return fsm;
 	}
@@ -218,6 +262,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 
 	protected abstract void reinitData();
 
+	/**
+	 * Uninstall the user interaction. Used to free memory.
+	 * 				Then, user interaction can be used any more.
+	 */
 	public void uninstall() {
 		disposable.dispose();
 		setActivated(false);

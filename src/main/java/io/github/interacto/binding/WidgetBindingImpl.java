@@ -87,7 +87,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 	 * Creates a widget binding.
 	 * @param continuousExecution Specifies whether the command must be executed on each step of the interaction.
 	 * @param cmdCreation The type of the command that will be created. Used to instantiate the cmd by reflexivity.
-	 * The class must be public and must have a constructor with no parameter.
+	 * 				The class must be public and must have a constructor with no parameter.
 	 * @param interaction The user interaction of the binding.
 	 * @throws IllegalArgumentException If the given interaction or instrument is null.
 	 */

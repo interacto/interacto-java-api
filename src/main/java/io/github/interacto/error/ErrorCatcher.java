@@ -18,7 +18,7 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 
 /**
- * The singleton ErrorCatcher collects errors.
+ * A single instance that collects errors.
  * The ErrorCatcher sends the gathered exception to an ErrorNotifier (if one is defined).
  * @author Arnaud BLOUIN
  */

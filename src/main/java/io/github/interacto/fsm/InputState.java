@@ -14,6 +14,10 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * Defines a type of state that can receive input events.
+ * @param <E> The type of events the FSM processes.
+ */
 public interface InputState<E> extends State<E> {
 	void enter() throws CancelFSMException;
 }

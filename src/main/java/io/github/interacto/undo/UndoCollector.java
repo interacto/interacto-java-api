@@ -76,7 +76,7 @@ public class UndoCollector {
 	/**
 	 * A stream for observing changes regarding the last undoable object.
 	 * @return An observable value of optional undoable objects: if empty, this means
-	 * that no undoable object are stored anymore.
+	 * 				that no undoable object are stored anymore.
 	 */
 	public Observable<Optional<Undoable>> undos() {
 		return undoPublisher;
@@ -85,7 +85,7 @@ public class UndoCollector {
 	/**
 	 * A stream for observing changes regarding the last redoable object.
 	 * @return An observable value of optional redoable objects: if empty, this means
-	 * that no redoable object are stored anymore.
+	 * 				that no redoable object are stored anymore.
 	 */
 	public Observable<Optional<Undoable>> redos() {
 		return redoPublisher;

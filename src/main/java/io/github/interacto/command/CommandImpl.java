@@ -17,7 +17,6 @@ package io.github.interacto.command;
 /**
  * Base implementation of the Command interface.
  * @author Arnaud BLOUIN
- * @since 0.2
  */
 public abstract class CommandImpl implements Command {
 	/** The state of the command. */

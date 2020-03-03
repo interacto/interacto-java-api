@@ -25,6 +25,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A finite state machine that defines the behavior of a user interaction.
+ * @param <E> The type of events the FSM processes.
+ */
 public class FSM<E> {
 	protected Logger logger;
 	protected boolean inner;

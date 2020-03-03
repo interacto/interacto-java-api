@@ -18,6 +18,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * A transition that refers to another FSM.
+ * Entering this transition starts the underlying sub-FSM.
+ * To leave the transition, the sub-FSM must end.
+ * @param <E> The type of events the FSM processes.
+ */
 public class SubFSMTransition<E> extends Transition<E> {
 	private final FSM<E> subFSM;
 	private final FSMHandler subFSMHandler;

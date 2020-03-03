@@ -18,6 +18,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Base implementation of the OutputState interface.
+ * @param <E> The type of events the FSM processes.
+ */
 public abstract class OutputStateImpl<E> extends StateImpl<E> implements OutputState<E> {
 	protected final List<Transition<E>> transitions;
 

@@ -14,5 +14,10 @@
  */
 package io.github.interacto.interaction;
 
+/**
+ * Defines the top type of interaction data.
+ * Every interaction data provided by a user interaction must implements
+ * this interface.
+ */
 public interface InteractionData {
 }

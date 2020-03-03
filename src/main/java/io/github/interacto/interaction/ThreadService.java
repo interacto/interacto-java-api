@@ -20,18 +20,47 @@ package io.github.interacto.interaction;
 public class ThreadService {
 	private static ThreadService instance = new ThreadService();
 
+	/**
+	 * @return The single instance of ThreadService.
+	 */
 	public static ThreadService getInstance() {
 		return instance;
 	}
 
+	/**
+	 * Sets the single instance.
+	 * @param instance The instance to use.
+	 */
 	public static void setInstance(final ThreadService instance) {
 		ThreadService.instance = instance;
 	}
 
+	/**
+	 * Causes the currently executing thread to sleep (temporarily cease
+	 * execution) for the specified number of milliseconds, subject to
+	 * the precision and accuracy of system timers and schedulers. The thread
+	 * does not lose ownership of any monitors.
+	 *
+	 * @param  millis
+	 *         the length of time to sleep in milliseconds
+	 *
+	 * @throws  IllegalArgumentException
+	 *          if the value of {@code millis} is negative
+	 *
+	 * @throws  InterruptedException
+	 *          if any thread has interrupted the current thread. The
+	 *          <i>interrupted status</i> of the current thread is
+	 *          cleared when this exception is thrown.
+	 */
 	public void sleep(final long millis) throws InterruptedException {
 		Thread.sleep(millis);
 	}
 
+	/**
+	 * Returns a reference to the currently executing thread object.
+	 *
+	 * @return  the currently executing thread.
+	 */
 	public Thread currentThread() {
 		return Thread.currentThread();
 	}

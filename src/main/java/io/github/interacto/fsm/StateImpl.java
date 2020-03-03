@@ -14,6 +14,10 @@
  */
 package io.github.interacto.fsm;
 
+/**
+ * The base implementation of the State interface.
+ * @param <E> The type of events the FSM processes.
+ */
 abstract class StateImpl<E> implements State<E> {
 	protected final FSM<E> fsm;
 	protected final String name;

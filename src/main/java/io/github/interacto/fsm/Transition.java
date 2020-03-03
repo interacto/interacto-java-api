@@ -17,6 +17,10 @@ package io.github.interacto.fsm;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * The base implementation of a FSM transition.
+ * @param <E> The type of events the FSM processes.
+ */
 public abstract class Transition<E> {
 	protected final OutputState<E> src;
 	protected final InputState<E> tgt;
