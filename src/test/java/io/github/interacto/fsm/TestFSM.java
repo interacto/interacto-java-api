@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -381,7 +380,6 @@ public class TestFSM {
 	@Test
 	void testUninstall() {
 		final var s1 = Mockito.mock(InputState.class);
-		final var disposed = new AtomicBoolean();
 		fsm.addState(s1);
 		fsm.eventsToProcess.add(new StubEvent());
 		fsm.uninstall();
