@@ -123,5 +123,6 @@
         <module name="NoWhitespaceAfter">
             <property name="tokens" value="BNOT, DEC, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
         </module>
+        <module name="AvoidDoubleBraceInitialization"/>
     </module>
 </module>
