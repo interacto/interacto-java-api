@@ -126,6 +126,7 @@
                 <version>1.5.0</version>
                 <configuration>
                     <mutationEngine>descartes</mutationEngine>
+                    <mutationThreshold>100</mutationThreshold>
                     <features>
                         <feature>
                             +STOP_METHODS(except[getter] except[setter] except[delegate])
