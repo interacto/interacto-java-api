@@ -561,24 +561,20 @@ public class TestFSM {
 		}
 
 		@Test
-		void testTimeoutStoppedOnOtherTransition() throws InterruptedException {
+		void testTimeoutStoppedOnOtherTransition() {
 			fsm.process(new StubEvent());
-			Thread.sleep(10);
 			fsm.process(new StubEvent());
-			Thread.sleep(100);
 			assertEquals(fsm.initState, fsm.getCurrentState());
 		}
 
 		@Test
-		void testTimeoutStoppedOnOtherTransitionWithLog() throws InterruptedException {
+		void testTimeoutStoppedOnOtherTransitionWithLog() {
 			fsm.log(true);
 			fsm.process(new StubEvent());
-			Thread.sleep(10);
 			sToT.guard = false;
 			final var spy = Mockito.spy(fsm.currentTimeout);
 			fsm.currentTimeout = spy;
 			fsm.process(new StubSubEvent2());
-			Thread.sleep(100);
 			assertEquals(std3, fsm.getCurrentState());
 			assertNull(fsm.currentTimeout);
 			Mockito.verify(spy, Mockito.times(1)).stopTimeout();
