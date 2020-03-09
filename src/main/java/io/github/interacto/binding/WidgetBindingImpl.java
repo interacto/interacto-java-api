@@ -300,9 +300,11 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 
 		if(ok) {
 			cmd = createCommand();
-			first();
-			if(loggerCmd != null) {
-				loggerCmd.log(Level.INFO, "Command created and init: " + cmd);
+			if(cmd != null) {
+				first();
+				if(loggerCmd != null) {
+					loggerCmd.log(Level.INFO, "Command created and init: " + cmd);
+				}
 			}
 		}else {
 			if(isStrictStart()) {

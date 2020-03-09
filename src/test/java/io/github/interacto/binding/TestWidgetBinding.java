@@ -114,7 +114,7 @@ public class TestWidgetBinding {
 	}
 
 	@Test
-	void testExecuteCrash() {
+	void testExecuteCrash() throws CancelFSMException {
 		errorStream.dispose();
 		final List<Throwable> errors = new ArrayList<>();
 		final IllegalArgumentException ex = new IllegalArgumentException();
@@ -124,9 +124,12 @@ public class TestWidgetBinding {
 		};
 
 		binding = new WidgetBindingStub(true, supplier, new InteractionStub());
-		assertNull(binding.createCommand());
+		binding.conditionRespected = true;
+		binding.fsmStarts();
+		assertNull(binding.getCommand());
 		assertEquals(1, errors.size());
 		assertSame(ex, errors.get(0));
+		assertFalse(binding.first);
 	}
 
 	@Test
