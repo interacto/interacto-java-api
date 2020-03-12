@@ -303,14 +303,19 @@ public class FSM<E> {
 	 * If it is the case, the timeout transition is launched.
 	 */
 	protected void checkTimeoutTransition() {
-		currentState.getTransitions().stream().filter(tr -> tr instanceof TimeoutTransition).findFirst().map(tr -> (TimeoutTransition<E>) tr).ifPresent(tr -> {
-			if(logger != null) {
-				logger.log(Level.INFO, "Timeout starting");
-			}
-
-			currentTimeout = tr;
-			currentTimeout.startTimeout();
-		});
+		currentState
+			.getTransitions()
+			.stream()
+			.filter(tr -> tr instanceof TimeoutTransition)
+			.findFirst()
+			.map(tr -> (TimeoutTransition<E>) tr)
+			.ifPresent(tr -> {
+				if(logger != null) {
+					logger.log(Level.INFO, "Timeout starting");
+				}
+				currentTimeout = tr;
+				currentTimeout.startTimeout();
+			});
 	}
 
 	public void addHandler(final FSMHandler handler) {

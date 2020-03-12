@@ -99,7 +99,9 @@ public class SubFSMTransition<E> extends Transition<E> {
 
 	@Override
 	protected boolean isGuardOK(final E event) {
-		return findTransition(event).filter(tr -> tr.isGuardOK(event)).isPresent();
+		return findTransition(event)
+			.filter(tr -> tr.isGuardOK(event))
+			.isPresent();
 	}
 
 	private Optional<Transition<E>> findTransition(final E event) {

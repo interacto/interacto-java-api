@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestFSM {
@@ -565,6 +567,35 @@ public class TestFSM {
 			fsm.process(new StubEvent());
 			fsm.process(new StubEvent());
 			assertEquals(fsm.initState, fsm.getCurrentState());
+		}
+
+		@Test
+		@DisplayName("timeout execution returns nothing")
+		void testTimeoutExecutionReturnsNothing() throws CancelFSMException {
+			fsm.currentTimeout = Mockito.mock(TimeoutTransition.class);
+			Mockito.when(fsm.currentTimeout.execute(null)).thenReturn(Optional.empty());
+			fsm.onTimeout();
+			assertSame(fsm.initState, fsm.getCurrentState());
+		}
+
+		@Test
+		@DisplayName("timeout execution returns an output state")
+		void testTimeoutExecutionReturnsOutputState() throws CancelFSMException {
+			final var out = new StdState<>(Mockito.mock(FSM.class), "foo");
+			fsm.currentTimeout = Mockito.mock(TimeoutTransition.class);
+			Mockito.when(fsm.currentTimeout.execute(null)).thenReturn(Optional.of(out));
+			fsm.onTimeout();
+			assertSame(out, fsm.getCurrentState());
+		}
+
+		@Test
+		@DisplayName("timeout execution returns not an output state")
+		void testTimeoutExecutionReturnsNotAnOutputState() throws CancelFSMException {
+			final var out = Mockito.mock(InputState.class);
+			fsm.currentTimeout = Mockito.mock(TimeoutTransition.class);
+			Mockito.when(fsm.currentTimeout.execute(null)).thenReturn(Optional.of(out));
+			fsm.onTimeout();
+			assertSame(fsm.initState, fsm.getCurrentState());
 		}
 
 		@Test

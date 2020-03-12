@@ -33,6 +33,7 @@ class TestSubFSMTransition {
 	StdState<StubEvent> s1;
 	StdState<StubEvent> s2;
 	TerminalState<StubEvent> subS;
+	SubStubTransition1 subT;
 
 	@BeforeEach
 	void setUp() {
@@ -47,7 +48,7 @@ class TestSubFSMTransition {
 		tr = new SubFSMTransition<>(s1, s2, fsm);
 
 		subS = new TerminalState<>(fsm, "sub1");
-		new SubStubTransition1(fsm.initState, subS, true);
+		subT = new SubStubTransition1(fsm.initState, subS, true);
 		fsm.addState(subS);
 	}
 
@@ -74,6 +75,12 @@ class TestSubFSMTransition {
 
 	@Test
 	void testGuardOKFirstEvent() {
+		subT.guard = false;
+		assertFalse(tr.isGuardOK(new StubSubEvent1()));
+	}
+
+	@Test
+	void testGuardKOWithGoodEventButKOGuard() {
 		assertTrue(tr.isGuardOK(new StubSubEvent1()));
 	}
 
