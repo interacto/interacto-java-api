@@ -129,7 +129,7 @@
                     <mutationThreshold>100</mutationThreshold>
                     <features>
                         <feature>
-                            +STOP_METHODS(except[getter] except[setter] except[delegate] except[lambda])
+                            +STOP_METHODS(except[getter] except[setter] except[delegate])
                         </feature>
                     </features>
                 </configuration>
