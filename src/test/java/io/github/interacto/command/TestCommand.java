@@ -47,6 +47,11 @@ public class TestCommand {
 	}
 
 	@Test
+	void testToString() {
+		assertEquals(cmd.getClass().getSimpleName(), cmd.toString());
+	}
+
+	@Test
 	void testExecuteAndFlushNull() {
 		Command.executeAndFlush(null);
 		assertTrue(CommandsRegistry.getInstance().getCommands().isEmpty());

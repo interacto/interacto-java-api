@@ -40,6 +40,6 @@ abstract class StateImpl<E> implements State<E> {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + "{name='" + name + "\'}";
+		return getClass().getSimpleName() + "{name='" + name + "'}";
 	}
 }

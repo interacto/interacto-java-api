@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestStateImpl {
 	StateImpl<StubEvent> state;
@@ -41,7 +40,7 @@ public class TestStateImpl {
 	}
 
 	@Test
-	void testToStringNotNull() {
-		assertNotNull(state.toString());
+	void testToString() {
+		assertEquals("StdState{name='s1'}", state.toString());
 	}
 }
