@@ -20,4 +20,8 @@ package io.github.interacto.interaction;
  * this interface.
  */
 public interface InteractionData {
+	/**
+	 * Flushes the interaction data.
+	 */
+	void flush();
 }
