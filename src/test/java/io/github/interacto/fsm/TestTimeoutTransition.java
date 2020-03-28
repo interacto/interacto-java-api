@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TestTimeoutTransition {
-	private final Object lock = new Object();
 	TimeoutTransition<StubEvent> evt;
 	OutputState<StubEvent> src;
 	InputState<StubEvent> tgt;
