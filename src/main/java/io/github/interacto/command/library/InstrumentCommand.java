@@ -25,6 +25,10 @@ public abstract class InstrumentCommand extends CommandImpl {
 	/** The manipulated instrument. */
 	protected final Instrument<?> instrument;
 
+	/**
+	 * Creates the command.
+	 * @param instrument The instrument to handle.
+	 */
 	public InstrumentCommand(final Instrument<?> instrument) {
 		super();
 		this.instrument = instrument;

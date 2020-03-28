@@ -110,6 +110,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		async = false;
 	}
 
+	/**
+	 * Logs information related to the binding.
+	 * @param log True: information will be logged
+	 */
 	public void logBinding(final boolean log) {
 		if(log) {
 			if(loggerBinding == null) {
@@ -120,6 +124,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		}
 	}
 
+	/**
+	 * Logs information related to the command creation.
+	 * @param log True: information related to the command creation will be logged
+	 */
 	public void logCmd(final boolean log) {
 		if(log) {
 			if(loggerCmd == null) {
@@ -130,6 +138,10 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		}
 	}
 
+	/**
+	 * Logs information related to the user interaction.
+	 * @param log True: information related to the user interaction will be logged
+	 */
 	public void logInteraction(final boolean log) {
 		interaction.log(log);
 	}

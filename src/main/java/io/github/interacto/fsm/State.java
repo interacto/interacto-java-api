@@ -19,8 +19,14 @@ package io.github.interacto.fsm;
  * @param <E> The type of events the FSM processes.
  */
 public interface State<E> {
+	/**
+	 * @return The name of the state.
+	 */
 	String getName();
 
+	/**
+	 * @return The FSM that contains the state.
+	 */
 	FSM<E> getFSM();
 
 	/**
@@ -35,6 +41,11 @@ public interface State<E> {
 		}
 	}
 
+	/**
+	 * Uninstall (ie flushes) the state.
+	 * Useful to clear data.
+	 * The state must not be used after that.
+	 */
 	default void uninstall() {
 	}
 }

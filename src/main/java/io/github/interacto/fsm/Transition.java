@@ -25,6 +25,12 @@ public abstract class Transition<E> {
 	protected final OutputState<E> src;
 	protected final InputState<E> tgt;
 
+	/**
+	 * Creates the transition.
+	 * @param srcState The source state of the transition.
+	 * @param tgtState The output state of the transition.
+	 * @throws IllegalArgumentException If one of the states is null.
+	 */
 	protected Transition(final OutputState<E> srcState, final InputState<E> tgtState) {
 		super();
 
@@ -38,6 +44,12 @@ public abstract class Transition<E> {
 		src.addTransition(this);
 	}
 
+	/**
+	 * Executes the transition.
+	 * @param event The event to process.
+	 * @return The potential output state.
+	 * @throws CancelFSMException If the execution cancels the FSM execution.
+	 */
 	public Optional<InputState<E>> execute(final E event) throws CancelFSMException {
 		if(accept(event) && isGuardOK(event)) {
 			src.getFSM().stopCurrentTimeout();
@@ -57,6 +69,9 @@ public abstract class Transition<E> {
 
 	protected abstract boolean isGuardOK(final E event);
 
+	/**
+	 * @return The set of events accepted by the transition.
+	 */
 	public abstract Set<Object> getAcceptedEvents();
 
 	/**

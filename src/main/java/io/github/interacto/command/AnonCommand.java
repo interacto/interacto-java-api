@@ -22,9 +22,13 @@ package io.github.interacto.command;
 public class AnonCommand extends CommandImpl {
 	private final Runnable exec;
 
-	public AnonCommand(final Runnable function) {
+	/**
+	 * Creates the command.
+	 * @param cmd The anonymous command to execute.
+	 */
+	public AnonCommand(final Runnable cmd) {
 		super();
-		exec = function;
+		exec = cmd;
 	}
 
 	@Override

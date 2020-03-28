@@ -22,6 +22,11 @@ abstract class StateImpl<E> implements State<E> {
 	protected final FSM<E> fsm;
 	protected final String name;
 
+	/**
+	 * Creates the state.
+	 * @param stateMachine The FSM that will contain the state.
+	 * @param stateName The name of this state.
+	 */
 	protected StateImpl(final FSM<E> stateMachine, final String stateName) {
 		super();
 		fsm = stateMachine;

@@ -59,6 +59,11 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected final Disposable disposable;
 	private boolean consumeEvents;
 
+	/**
+	 * Creates the interaction.
+	 * @param fsm The FSM that defines the behavior of the user interaction.
+	 * @throws IllegalArgumentException If the given FSM is null.
+	 */
 	protected InteractionImpl(final F fsm) {
 		super();
 

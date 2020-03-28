@@ -20,6 +20,11 @@ package io.github.interacto.fsm;
  * @param <E> The type of events the FSM processes.
  */
 public class CancellingState<E> extends StateImpl<E> implements InputState<E> {
+	/**
+	 * Creates the state.
+	 * @param stateMachine The FSM that will contain the state.
+	 * @param stateName The name of this state.
+	 */
 	public CancellingState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);
 	}

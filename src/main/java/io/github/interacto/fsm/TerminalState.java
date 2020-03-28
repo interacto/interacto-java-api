@@ -20,6 +20,11 @@ package io.github.interacto.fsm;
  * @param <E> The type of events the FSM processes.
  */
 public class TerminalState<E> extends StateImpl<E> implements InputState<E> {
+	/**
+	 * Creates the terminal state.
+	 * @param stateMachine The FSM that will contain the state.
+	 * @param stateName The name of this state.
+	 */
 	public TerminalState(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);
 	}

@@ -28,6 +28,13 @@ public class SubFSMTransition<E> extends Transition<E> {
 	private final FSM<E> subFSM;
 	private final FSMHandler subFSMHandler;
 
+	/**
+	 * Creates the transition.
+	 * @param srcState The source state of the transition.
+	 * @param tgtState The output state of the transition.
+	 * @param fsm The inner FSM that composes the transition.
+	 * @throws IllegalArgumentException If one of the states is null.
+	 */
 	public SubFSMTransition(final OutputState<E> srcState, final InputState<E> tgtState, final FSM<E> fsm) {
 		super(srcState, tgtState);
 

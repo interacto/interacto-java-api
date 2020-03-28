@@ -37,6 +37,13 @@ public class TimeoutTransition<E> extends Transition<E> {
 
 	private boolean timeouted;
 
+	/**
+	 * Creates the timeout transition.
+	 * @param srcState The source state of the transition.
+	 * @param tgtState The output state of the transition.
+	 * @param timeout The function that returns the timeout value in ms.
+	 * @throws IllegalArgumentException If one of the states is null.
+	 */
 	public TimeoutTransition(final OutputState<E> srcState, final InputState<E> tgtState, final LongSupplier timeout) {
 		super(srcState, tgtState);
 

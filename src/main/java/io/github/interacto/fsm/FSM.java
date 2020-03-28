@@ -61,6 +61,9 @@ public class FSM<E> {
 	protected FSM<E> currentSubFSM;
 
 
+	/**
+	 * Creates the FSM.
+	 */
 	public FSM() {
 		super();
 		eventsToProcess = new ArrayList<>();
@@ -75,22 +78,41 @@ public class FSM<E> {
 		handlers = new HashSet<>(2);
 	}
 
+	/**
+	 * @return The current state of FSM during its execution.
+	 */
 	public OutputState<E> getCurrentState() {
 		return currentState;
 	}
 
+	/**
+	 * @return An observable value for observing the current state of FSM during its execution.
+	 */
 	public Observable<Map.Entry<OutputState<E>, OutputState<E>>> currentState() {
 		return currentStatePublisher;
 	}
 
+	/**
+	 * States whether the FSM is an inner FSM (ie, whether it is included into another FSM as
+	 * a sub-FSM transition).
+	 * @param inner True: this FSM will be considered as an inner FSM.
+	 */
 	public void setInner(final boolean inner) {
 		this.inner = inner;
 	}
 
+	/**
+	 * @return True: this FSM is an inner FSM.
+	 */
 	public boolean isInner() {
 		return inner;
 	}
 
+	/**
+	 * Processes the provided event to run the FSM.
+	 * @param event The event to process.
+	 * @return True: the FSM correctly processed the event.
+	 */
 	public boolean process(final E event) {
 		if(event == null) {
 			return false;
@@ -109,6 +131,9 @@ public class FSM<E> {
 		}
 	}
 
+	/**
+	 * @return True: The FSM started.
+	 */
 	public boolean isStarted() {
 		return started;
 	}
@@ -219,6 +244,10 @@ public class FSM<E> {
 		}
 	}
 
+	/**
+	 * Logs (or not) information about the execution of the FSM.
+	 * @param log True: logging activated.
+	 */
 	public void log(final boolean log) {
 		if(log) {
 			if(logger == null) {
@@ -229,6 +258,11 @@ public class FSM<E> {
 		}
 	}
 
+	/**
+	 * Reinitialises the FSM.
+	 * Remaining events to process are however not clear.
+	 * See {@link FSM#fullReinit} for that.
+	 */
 	public void reinit() {
 		if(logger != null) {
 			logger.log(Level.INFO, "FSM reinitialised");
@@ -247,6 +281,11 @@ public class FSM<E> {
 		}
 	}
 
+	/**
+	 * Reinitialises the FSM.
+	 * Compared to {@link FSM#reinit} this method
+	 * flushes the remaining events to process.
+	 */
 	public void fullReinit() {
 		synchronized(eventsToProcess) {
 			eventsToProcess.clear();
@@ -318,12 +357,20 @@ public class FSM<E> {
 			});
 	}
 
+	/**
+	 * Adds an FSM handler.
+	 * @param handler The handler to add.
+	 */
 	public void addHandler(final FSMHandler handler) {
 		if(handler != null) {
 			handlers.add(handler);
 		}
 	}
 
+	/**
+	 * Removes the given FSM handler from this FSM.
+	 * @param handler The handler to remove.
+	 */
 	public void removeHandler(final FSMHandler handler) {
 		if(handler != null) {
 			handlers.remove(handler);
@@ -382,10 +429,18 @@ public class FSM<E> {
 		new ArrayList<>(handlers).forEach(handler -> handler.fsmCancels());
 	}
 
+	/**
+	 * @return The set of the states that compose the FSM. This returns a unmodifiable set.
+	 */
 	public Set<State<E>> getStates() {
 		return Collections.unmodifiableSet(states);
 	}
 
+	/**
+	 * Uninstall the FSM.
+	 * Useful for flushing memory.
+	 * The FSM must not be used after that.
+	 */
 	public void uninstall() {
 		fullReinit();
 		logger = null;

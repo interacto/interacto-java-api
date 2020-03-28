@@ -22,6 +22,12 @@ public abstract class WidgetTransition<E, T> extends Transition<E> {
 	/** The pressed button. */
 	protected T widget;
 
+	/**
+	 * Creates the transition.
+	 * @param srcState The source state of the transition.
+	 * @param tgtState The output state of the transition.
+	 * @throws IllegalArgumentException If one of the states is null.
+	 */
 	public WidgetTransition(final OutputState<E> srcState, final InputState<E> tgtState) {
 		super(srcState, tgtState);
 	}

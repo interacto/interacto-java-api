@@ -25,6 +25,11 @@ import java.util.List;
 public abstract class OutputStateImpl<E> extends StateImpl<E> implements OutputState<E> {
 	protected final List<Transition<E>> transitions;
 
+	/**
+	 * Creates the state.
+	 * @param stateMachine The FSM that will contain the state.
+	 * @param stateName The name of this state.
+	 */
 	protected OutputStateImpl(final FSM<E> stateMachine, final String stateName) {
 		super(stateMachine, stateName);
 		transitions = new ArrayList<>();

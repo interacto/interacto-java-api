@@ -21,6 +21,11 @@ import java.util.List;
  * @param <E> The type of events the FSM processes.
  */
 public interface OutputState<E> extends State<E> {
+	/**
+	 * Actions done when a transition of the state is executed so
+	 * that this state is left.
+	 * @throws CancelFSMException If leaving the state leads to a cancelling of the FSM execution.
+	 */
 	void exit() throws CancelFSMException;
 
 	/**
@@ -41,7 +46,14 @@ public interface OutputState<E> extends State<E> {
 		return false;
 	}
 
+	/**
+	 * @return The list of outgoing transitions of the state.
+	 */
 	List<Transition<E>> getTransitions();
 
+	/**
+	 * Adds the given transitions to the list of outgoing transitions of the state.
+	 * @param tr The transition to add.
+	 */
 	void addTransition(final Transition<E> tr);
 }

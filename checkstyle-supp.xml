@@ -4,4 +4,5 @@
 
 <suppressions>
     <suppress checks="MissingJavadocType" files=".*[\\/src\\/main\\/test\\/]"/>
+    <suppress checks="MissingJavadocMethod" files=".*[\\/src\\/main\\/test\\/]"/>
 </suppressions>
