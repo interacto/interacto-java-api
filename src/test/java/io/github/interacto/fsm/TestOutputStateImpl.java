@@ -30,7 +30,7 @@ public class TestOutputStateImpl {
 
 	@BeforeEach
 	void setUp() {
-		Mockito.mock(FSM.class);
+		fsm = Mockito.mock(FSM.class);
 		state = new OutputStateImpl<>(fsm, "os") {
 			@Override
 			public void exit() {
