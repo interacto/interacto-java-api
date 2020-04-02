@@ -550,11 +550,15 @@ public class TestWidgetBinding {
 
 	@Test
 	void testUninstallBinding() {
+		final InteractionStub interaction = Mockito.mock(InteractionStub.class);
+		Mockito.when(interaction.getFsm()).thenReturn(new FSM<>());
+		binding = new WidgetBindingStub(false, CmdStub::new, interaction);
 		binding.uninstallBinding();
 		assertFalse(binding.isActivated());
 		assertTrue(binding.cmdsProduced.hasComplete());
 		assertNull(binding.loggerCmd);
 		assertNull(binding.loggerBinding);
+		Mockito.verify(interaction, Mockito.times(1)).uninstall();
 	}
 
 	@Test

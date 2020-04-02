@@ -485,6 +485,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		cmdsProduced.onComplete();
 		loggerCmd = null;
 		loggerBinding = null;
+		interaction.uninstall();
 	}
 
 	@Override
