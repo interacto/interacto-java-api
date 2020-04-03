@@ -121,7 +121,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected abstract void consumeEvent(final E event);
 
 	/**
-	 * Sets whether the user interaction will consumes the processed UI events.
+	 * Sets whether the user interaction will consume the processed UI events.
 	 * 				This is related to the event.consume() method.
 	 * @param consumeEvents True: the processed events will be consumed.
 	 */
