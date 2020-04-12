@@ -404,7 +404,7 @@ public abstract class WidgetBindingImpl<C extends Command, I extends Interaction
 		boolean ok = when();
 
 		if(loggerBinding != null) {
-			loggerBinding.log(Level.INFO, "when predicate is {}", ok);
+			loggerBinding.log(Level.INFO, "when predicate is " + ok);
 		}
 
 		if(ok) {
