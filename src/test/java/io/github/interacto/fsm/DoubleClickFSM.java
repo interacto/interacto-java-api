@@ -23,12 +23,10 @@ public class DoubleClickFSM extends FSM<String> {
 		firstClickFSM = new ClickFSM();
 		sndClick = new ClickFSM();
 		final TerminalState<String> dbleclicked = new TerminalState<>(this, "dbleclicked");
-		final CancellingState<String> cancelled = new CancellingState<>(this, "cancelled");
 		final StdState<String> clicked = new StdState<>(this, "clicked");
 
 		addState(clicked);
 		addState(dbleclicked);
-		addState(cancelled);
 		startingState = dbleclicked;
 
 		new SubFSMTransition<>(initState, clicked, firstClickFSM);
