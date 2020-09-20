@@ -160,7 +160,7 @@ public class FSM<E> {
 				eventsToProcess.remove(0);
 
 				if(logger != null) {
-					logger.log(Level.INFO, "Recycling event: " + event);
+					logger.log(Level.INFO, "Recycling event: " + event + " in : " + getClass().getSimpleName());
 				}
 
 				process(event);
@@ -182,7 +182,7 @@ public class FSM<E> {
 	 */
 	protected void onTerminating() throws CancelFSMException {
 		if(logger != null) {
-			logger.log(Level.INFO, "FSM ended");
+			logger.log(Level.INFO, "FSM ended: {0}", getClass().getSimpleName());
 		}
 
 		if(started) {
@@ -197,7 +197,7 @@ public class FSM<E> {
 	 * */
 	protected void onCancelling() {
 		if(logger != null) {
-			logger.log(Level.INFO, "FSM cancelled");
+			logger.log(Level.INFO, "FSM cancelled: {0}", getClass().getSimpleName());
 		}
 
 		if(started) {
@@ -213,7 +213,7 @@ public class FSM<E> {
 	 */
 	public void onStarting() throws CancelFSMException {
 		if(logger != null) {
-			logger.log(Level.INFO, "FSM started");
+			logger.log(Level.INFO, "FSM started: {0}", getClass().getSimpleName());
 		}
 
 		started = true;
@@ -227,7 +227,7 @@ public class FSM<E> {
 	public void onUpdating() throws CancelFSMException {
 		if(started) {
 			if(logger != null) {
-				logger.log(Level.INFO, "FSM updated");
+				logger.log(Level.INFO, "FSM updated: {0}", getClass().getSimpleName());
 			}
 
 			notifyHandlerOnUpdate();
@@ -251,7 +251,7 @@ public class FSM<E> {
 	public void log(final boolean log) {
 		if(log) {
 			if(logger == null) {
-				logger = Logger.getLogger(getClass().getName());
+				logger = Logger.getLogger(FSM.class.getName());
 			}
 		}else {
 			logger = null;
@@ -265,7 +265,7 @@ public class FSM<E> {
 	 */
 	public void reinit() {
 		if(logger != null) {
-			logger.log(Level.INFO, "FSM reinitialised");
+			logger.log(Level.INFO, "FSM reinitialised: {0}", getClass().getSimpleName());
 		}
 
 		if(currentTimeout != null) {
@@ -306,7 +306,7 @@ public class FSM<E> {
 	protected void onTimeout() {
 		if(currentTimeout != null) {
 			if(logger != null) {
-				logger.log(Level.INFO, "Timeout");
+				logger.log(Level.INFO, "Timeout in: {0}", getClass().getSimpleName());
 			}
 
 			try {
@@ -329,7 +329,7 @@ public class FSM<E> {
 	protected void stopCurrentTimeout() {
 		if(currentTimeout != null) {
 			if(logger != null) {
-				logger.log(Level.INFO, "Timeout stopped");
+				logger.log(Level.INFO, "Timeout stopped in: {0}", getClass().getSimpleName());
 			}
 
 			currentTimeout.stopTimeout();
@@ -350,7 +350,7 @@ public class FSM<E> {
 			.map(tr -> (TimeoutTransition<E>) tr)
 			.ifPresent(tr -> {
 				if(logger != null) {
-					logger.log(Level.INFO, "Timeout starting");
+					logger.log(Level.INFO, "Timeout starting in: {0}", getClass().getSimpleName());
 				}
 				currentTimeout = tr;
 				currentTimeout.startTimeout();
