@@ -34,7 +34,7 @@ public interface OutputState<E> extends State<E> {
 	 * @return True: a transition is found and executed. False otherwise.
 	 */
 	default boolean process(final E event) {
-		for(final Transition<E> tr : getTransitions()) {
+		for(final Transition<? extends E, E> tr : getTransitions()) {
 			try {
 				if(tr.execute(event).isPresent()) {
 					return true;
@@ -49,11 +49,11 @@ public interface OutputState<E> extends State<E> {
 	/**
 	 * @return The list of outgoing transitions of the state.
 	 */
-	List<Transition<E>> getTransitions();
+	List<Transition<? extends E, E>> getTransitions();
 
 	/**
 	 * Adds the given transitions to the list of outgoing transitions of the state.
 	 * @param tr The transition to add.
 	 */
-	void addTransition(final Transition<E> tr);
+	void addTransition(final Transition<? extends E, E> tr);
 }

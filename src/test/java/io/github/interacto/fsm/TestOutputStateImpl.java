@@ -40,15 +40,15 @@ public class TestOutputStateImpl {
 
 	@Test
 	void testGetTransitions() {
-		final List<Transition<String>> tr = state.getTransitions();
+		final List<Transition<? extends String, String>> tr = state.getTransitions();
 		assertNotNull(tr);
 		assertThrows(UnsupportedOperationException.class, () -> tr.clear());
 	}
 
 	@Test
 	void testAddTransitionOK() {
-		final Transition<String> t1 = Mockito.mock(Transition.class);
-		final Transition<String> t2 = Mockito.mock(Transition.class);
+		final Transition<? extends String, String> t1 = Mockito.mock(Transition.class);
+		final Transition<? extends String, String> t2 = Mockito.mock(Transition.class);
 		state.addTransition(t2);
 		state.addTransition(t1);
 		assertEquals(List.of(t2, t1), state.getTransitions());
@@ -62,8 +62,8 @@ public class TestOutputStateImpl {
 
 	@Test
 	void testUninstall() {
-		final Transition<String> t1 = Mockito.mock(Transition.class);
-		final Transition<String> t2 = Mockito.mock(Transition.class);
+		final Transition<? extends String, String> t1 = Mockito.mock(Transition.class);
+		final Transition<? extends String, String> t2 = Mockito.mock(Transition.class);
 		state.addTransition(t1);
 		state.addTransition(t2);
 		state.uninstall();

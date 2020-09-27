@@ -26,6 +26,8 @@ import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -76,26 +78,33 @@ class TestTimeoutTransition {
 	void testIsGuardOKAfterTimeout() throws InterruptedException {
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		assertTrue(evt.isGuardOK(null));
+		assertTrue(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
 	void testIsGuardKOBeforeTimeout() {
 		evt.startTimeout();
-		assertFalse(evt.isGuardOK(null));
+		assertFalse(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
 	void testacceptOKAfterTimeout() throws InterruptedException {
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		assertTrue(evt.accept(null));
+		assertNotNull(evt.accept(new StubEvent()));
+	}
+
+	@Test
+	void testacceptOKAfterTimeoutWithAnotherType() throws InterruptedException {
+		evt.startTimeout();
+		waitForTimeoutThreads();
+		assertNotNull(evt.accept(new StubSubEvent1()));
 	}
 
 	@Test
 	void testacceptKOBeforeTimeout() {
 		evt.startTimeout();
-		assertFalse(evt.accept(null));
+		assertNull(evt.accept(new StubEvent()));
 	}
 
 	@Test
@@ -103,7 +112,7 @@ class TestTimeoutTransition {
 		evt.startTimeout();
 		evt.stopTimeout();
 		waitForTimeoutThreads();
-		assertFalse(evt.isGuardOK(null));
+		assertFalse(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
@@ -112,7 +121,7 @@ class TestTimeoutTransition {
 		evt.startTimeout();
 		assertEquals(0L, getTimeoutThreads().size());
 		evt.stopTimeout();
-		assertFalse(evt.isGuardOK(null));
+		assertFalse(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
@@ -122,14 +131,14 @@ class TestTimeoutTransition {
 		evt.startTimeout();
 		assertEquals(1L, getTimeoutThreads().size());
 		evt.stopTimeout();
-		assertFalse(evt.isGuardOK(null));
+		assertFalse(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
 	void testStopWhenNotStarted() {
 		evt.stopTimeout();
 		assertEquals(0L, getTimeoutThreads().size());
-		assertFalse(evt.isGuardOK(null));
+		assertFalse(evt.isGuardOK(new StubSubEvent1()));
 	}
 
 	@Test
@@ -139,14 +148,14 @@ class TestTimeoutTransition {
 
 	@Test
 	void testExecuteWithoutTimeout() throws CancelFSMException {
-		assertTrue(evt.execute(null).isEmpty());
+		assertTrue(evt.execute(new StubSubEvent1()).isEmpty());
 	}
 
 	@Test
 	void testExecuteWithTimeout() throws CancelFSMException, InterruptedException {
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		assertEquals(tgt, evt.execute(null).orElseThrow());
+		assertEquals(tgt, evt.execute(new StubSubEvent1()).orElseThrow());
 	}
 
 	@Test
@@ -159,7 +168,7 @@ class TestTimeoutTransition {
 		};
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		assertTrue(evt.execute(null).isEmpty());
+		assertTrue(evt.execute(new StubSubEvent1()).isEmpty());
 	}
 
 	@Test
@@ -167,7 +176,7 @@ class TestTimeoutTransition {
 		Mockito.doThrow(CancelFSMException.class).when(tgt).enter();
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		assertThrows(CancelFSMException.class, () -> evt.execute(null));
+		assertThrows(CancelFSMException.class, () -> evt.execute(new StubSubEvent1()));
 	}
 
 	@Test
@@ -194,7 +203,7 @@ class TestTimeoutTransition {
 	void testExecuteCallsStatesMethods() throws InterruptedException, CancelFSMException {
 		evt.startTimeout();
 		waitForTimeoutThreads();
-		evt.execute(null);
+		evt.execute(new StubSubEvent1());
 		Mockito.verify(src, Mockito.times(1)).exit();
 		Mockito.verify(tgt, Mockito.times(1)).enter();
 	}

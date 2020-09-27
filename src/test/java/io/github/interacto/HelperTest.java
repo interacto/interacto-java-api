@@ -14,10 +14,20 @@
  */
 package io.github.interacto;
 
-import java.awt.GraphicsEnvironment;
+import io.github.interacto.fsm.TimeoutTransition;
 
 public abstract class HelperTest {
-	public static boolean isHeadlessMode() {
-		return GraphicsEnvironment.getLocalGraphicsEnvironment().isHeadlessInstance();
+	public static void waitForTimeoutTransitions() {
+		Thread.getAllStackTraces()
+			.keySet()
+			.stream()
+			.filter(thread -> thread.getName().startsWith(TimeoutTransition.TIMEOUT_THREAD_NAME_BASE))
+			.forEach(thread -> {
+				try {
+					thread.join();
+				}catch(final InterruptedException ex) {
+					Thread.currentThread().interrupt();
+				}
+			});
 	}
 }

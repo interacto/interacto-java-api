@@ -14,6 +14,7 @@
  */
 package io.github.interacto.fsm;
 
+import io.github.interacto.HelperTest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -99,8 +100,8 @@ public class TestFSM {
 			std = new StdState<>(fsm, "s1");
 			terminal = new TerminalState<>(fsm, "t1");
 			cancelling = new CancellingState<>(fsm, "c1");
-			new StubTransitionOK(fsm.initState, std);
-			new StubTransitionOK(std, terminal);
+			new StubTransitionOK<>(fsm.initState, std);
+			new StubTransitionOK<>(std, terminal);
 			fsm.addState(std);
 			fsm.addState(terminal);
 			fsm.addState(cancelling);
@@ -416,10 +417,10 @@ public class TestFSM {
 		StdState<StubEvent> std;
 		TerminalState<StubEvent> terminal;
 		CancellingState<StubEvent> cancel;
-		StubTransitionOK iToS;
-		Transition<StubEvent> sToT;
-		Transition<StubEvent> sToC;
-		Transition<StubEvent> recur;
+		StubTransitionOK<StubEvent> iToS;
+		Transition<StubSubEvent1, StubEvent> sToT;
+		Transition<StubSubEvent2, StubEvent> sToC;
+		Transition<StubSubEvent3, StubEvent> recur;
 
 		@BeforeEach
 		void setUp() {
@@ -428,7 +429,7 @@ public class TestFSM {
 			std = new StdState<>(fsm, "s1");
 			terminal = new TerminalState<>(fsm, "t1");
 			cancel = new CancellingState<>(fsm, "c1");
-			iToS = new StubTransitionOK(fsm.initState, std);
+			iToS = new StubTransitionOK<>(fsm.initState, std);
 			sToT = new SubStubTransition1(std, terminal, true);
 			sToC = new SubStubTransition2(std, cancel, true);
 			recur = new SubStubTransition3(std, std, true);
@@ -533,8 +534,8 @@ public class TestFSM {
 		StdState<StubEvent> std2;
 		StdState<StubEvent> std3;
 		TerminalState<StubEvent> terminal;
-		StubTransitionOK iToS;
-		StubTransitionOK sToT;
+		StubTransitionOK<StubEvent> iToS;
+		StubTransitionOK<StubEvent> sToT;
 		TimeoutTransition<StubEvent> timeout;
 
 		@BeforeEach
@@ -544,21 +545,21 @@ public class TestFSM {
 			std2 = new StdState<>(fsm, "s2");
 			std3 = new StdState<>(fsm, "s3");
 			terminal = new TerminalState<>(fsm, "t1");
-			iToS = new StubTransitionOK(fsm.initState, std);
-			sToT = new StubTransitionOK(std, terminal);
+			iToS = new StubTransitionOK<>(fsm.initState, std);
+			sToT = new StubTransitionOK<>(std, terminal);
 			new SubStubTransition2(std, std3, true);
 			timeout = new TimeoutTransition<>(std, std2, () -> 100L);
-			new StubTransitionOK(std2, std);
+			new StubTransitionOK<>(std2, std);
 			fsm.addState(std);
 			fsm.addState(std2);
 			fsm.addState(terminal);
 		}
 
 		@Test
-		void testTimeoutChangeState() throws InterruptedException {
+		void testTimeoutChangeState() {
 			fsm.log(true);
 			fsm.process(new StubEvent());
-			Thread.sleep(200);
+			HelperTest.waitForTimeoutTransitions();
 			assertEquals(std2, fsm.getCurrentState());
 		}
 
@@ -615,7 +616,7 @@ public class TestFSM {
 		void testTimeoutChangeStateThenCancel() throws InterruptedException, CancelFSMException {
 			fsm.process(new StubEvent());
 			Mockito.doThrow(new CancelFSMException()).when(handler).fsmUpdates();
-			Thread.sleep(300);
+			HelperTest.waitForTimeoutTransitions();
 			assertEquals(fsm.initState, fsm.getCurrentState());
 			Mockito.verify(handler, Mockito.times(1)).fsmCancels();
 		}

@@ -26,7 +26,7 @@ import java.util.function.LongSupplier;
  * the FSM goes through such a transition on a timeout.
  * @param <E> The type of events the FSM processes.
  */
-public class TimeoutTransition<E> extends Transition<E> {
+public class TimeoutTransition<E> extends Transition<E, E> {
 	/** The base name (starts with) of the threads created for the timeout. */
 	public static final String TIMEOUT_THREAD_NAME_BASE = "malai-timeout-transition-";
 	/** The timeoutDuration in ms. */
@@ -95,8 +95,8 @@ public class TimeoutTransition<E> extends Transition<E> {
 	}
 
 	@Override
-	protected boolean accept(final E event) {
-		return timeouted;
+	protected E accept(final E event) {
+		return timeouted ? event : null;
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class TimeoutTransition<E> extends Transition<E> {
 	@Override
 	public Optional<InputState<E>> execute(final E event) throws CancelFSMException {
 		try {
-			if(accept(event) && isGuardOK(event)) {
+			if(timeouted && isGuardOK(event)) {
 				src.exit();
 				action(event);
 				tgt.enter();

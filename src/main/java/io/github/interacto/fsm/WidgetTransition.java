@@ -18,7 +18,7 @@ package io.github.interacto.fsm;
  * This transition must be used to use a widget within an interaction.
  * @author Arnaud BLOUIN
  */
-public abstract class WidgetTransition<E, T> extends Transition<E> {
+public abstract class WidgetTransition<E extends E0, E0, T> extends Transition<E, E0> {
 	/** The pressed button. */
 	protected T widget;
 
@@ -28,7 +28,7 @@ public abstract class WidgetTransition<E, T> extends Transition<E> {
 	 * @param tgtState The output state of the transition.
 	 * @throws IllegalArgumentException If one of the states is null.
 	 */
-	public WidgetTransition(final OutputState<E> srcState, final InputState<E> tgtState) {
+	public WidgetTransition(final OutputState<E0> srcState, final InputState<E0> tgtState) {
 		super(srcState, tgtState);
 	}
 

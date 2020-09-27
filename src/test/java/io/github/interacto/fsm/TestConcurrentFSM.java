@@ -254,8 +254,8 @@ public class TestConcurrentFSM {
 			addState(cancelled);
 			new Transition<>(initState, touched) {
 				@Override
-				protected boolean accept(final String event) {
-					return true;
+				protected String accept(final String event) {
+					return event;
 				}
 				@Override
 				protected boolean isGuardOK(final String event) {
@@ -268,8 +268,8 @@ public class TestConcurrentFSM {
 			};
 			new Transition<>(touched, moved) {
 				@Override
-				protected boolean accept(final String event) {
-					return true;
+				protected String accept(final String event) {
+					return event;
 				}
 				@Override
 				protected boolean isGuardOK(final String event) {
@@ -283,8 +283,8 @@ public class TestConcurrentFSM {
 			};
 			new Transition<>(moved, moved) {
 				@Override
-				protected boolean accept(final String event) {
-					return true;
+				protected String accept(final String event) {
+					return event;
 				}
 				@Override
 				protected boolean isGuardOK(final String event) {
@@ -298,8 +298,8 @@ public class TestConcurrentFSM {
 			};
 			new Transition<>(moved, released) {
 				@Override
-				protected boolean accept(final String event) {
-					return true;
+				protected String accept(final String event) {
+					return event;
 				}
 				@Override
 				protected boolean isGuardOK(final String event) {
@@ -313,8 +313,8 @@ public class TestConcurrentFSM {
 			};
 			new Transition<>(moved, cancelled) {
 				@Override
-				protected boolean accept(final String event) {
-					return true;
+				protected String accept(final String event) {
+					return event;
 				}
 				@Override
 				protected boolean isGuardOK(final String event) {

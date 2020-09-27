@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestTransition {
-	Transition<StubEvent> tr;
+	Transition<StubSubEvent1, StubEvent> tr;
 	StdState<StubEvent> state1;
 	StdState<StubEvent> state2;
 

@@ -17,7 +17,7 @@ package io.github.interacto.fsm;
 import java.util.Set;
 import org.mockito.internal.util.collections.Sets;
 
-public class StubTransitionOK extends Transition<StubEvent> {
+public class StubTransitionOK<E extends StubEvent> extends Transition<E, StubEvent> {
 	public boolean guard;
 
 	protected StubTransitionOK(final OutputState<StubEvent> srcState, final InputState<StubEvent> tgtState) {
@@ -30,12 +30,12 @@ public class StubTransitionOK extends Transition<StubEvent> {
 	}
 
 	@Override
-	protected boolean accept(final StubEvent event) {
-		return true;
+	protected E accept(final StubEvent event) {
+		return (E) event;
 	}
 
 	@Override
-	protected boolean isGuardOK(final StubEvent event) {
+	protected boolean isGuardOK(final E event) {
 		return guard;
 	}
 
@@ -45,14 +45,14 @@ public class StubTransitionOK extends Transition<StubEvent> {
 	}
 }
 
-class SubStubTransition1 extends StubTransitionOK {
+class SubStubTransition1 extends StubTransitionOK<StubSubEvent1> {
 	protected SubStubTransition1(final OutputState<StubEvent> srcState, final InputState<StubEvent> tgtState, final boolean guard) {
 		super(srcState, tgtState, guard);
 	}
 
 	@Override
-	public boolean accept(final StubEvent event) {
-		return event instanceof StubSubEvent1;
+	public StubSubEvent1 accept(final StubEvent event) {
+		return event instanceof StubSubEvent1 ? (StubSubEvent1) event : null;
 	}
 
 	@Override
@@ -61,14 +61,14 @@ class SubStubTransition1 extends StubTransitionOK {
 	}
 }
 
-class SubStubTransition2 extends StubTransitionOK {
+class SubStubTransition2 extends StubTransitionOK<StubSubEvent2> {
 	protected SubStubTransition2(final OutputState<StubEvent> srcState, final InputState<StubEvent> tgtState, final boolean guard) {
 		super(srcState, tgtState, guard);
 	}
 
 	@Override
-	public boolean accept(final StubEvent event) {
-		return event instanceof StubSubEvent2;
+	public StubSubEvent2 accept(final StubEvent event) {
+		return event instanceof StubSubEvent2 ? (StubSubEvent2) event : null;
 	}
 
 	@Override
@@ -77,14 +77,14 @@ class SubStubTransition2 extends StubTransitionOK {
 	}
 }
 
-class SubStubTransition3 extends StubTransitionOK {
+class SubStubTransition3 extends StubTransitionOK<StubSubEvent3> {
 	protected SubStubTransition3(final OutputState<StubEvent> srcState, final InputState<StubEvent> tgtState, final boolean guard) {
 		super(srcState, tgtState, guard);
 	}
 
 	@Override
-	public boolean accept(final StubEvent event) {
-		return event instanceof StubSubEvent3;
+	public StubSubEvent3 accept(final StubEvent event) {
+		return event instanceof StubSubEvent3 ? (StubSubEvent3) event : null;
 	}
 
 	@Override

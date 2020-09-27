@@ -261,8 +261,8 @@ public class TestWidgetBindingIntegration {
 			addState(s1);
 			new Transition<>(initState, s1) {
 				@Override
-				protected boolean accept(final Object event) {
-					return event instanceof EventStub1;
+				protected EventStub1 accept(final Object event) {
+					return event instanceof EventStub1 ? (EventStub1) event : null;
 				}
 
 				@Override

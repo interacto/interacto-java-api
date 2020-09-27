@@ -27,8 +27,8 @@ public class ClickFSM extends FSM<String> {
 		addState(moved);
 		new Transition<>(initState, pressed) {
 			@Override
-			protected boolean accept(final String event) {
-				return true;
+			protected String accept(final String event) {
+				return event;
 			}
 			@Override
 			protected boolean isGuardOK(final String event) {
@@ -42,8 +42,8 @@ public class ClickFSM extends FSM<String> {
 		};
 		new Transition<>(pressed, released) {
 			@Override
-			protected boolean accept(final String event) {
-				return true;
+			protected String accept(final String event) {
+				return event;
 			}
 			@Override
 			protected boolean isGuardOK(final String event) {
@@ -57,8 +57,8 @@ public class ClickFSM extends FSM<String> {
 		};
 		new Transition<>(pressed, moved) {
 			@Override
-			protected boolean accept(final String event) {
-				return true;
+			protected String accept(final String event) {
+				return event;
 			}
 			@Override
 			protected boolean isGuardOK(final String event) {

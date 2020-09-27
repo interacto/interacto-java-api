@@ -22,17 +22,17 @@ import org.mockito.Mockito;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestWidgetTransition {
-	WidgetTransition<StubEvent, Object> transition;
+	WidgetTransition<StubSubEvent1, StubEvent, Object> transition;
 
 	@BeforeEach
 	void setUp() {
-		transition = new WidgetTransition<StubEvent, Object>(Mockito.mock(OutputState.class), Mockito.mock(InputState.class)) {
+		transition = new WidgetTransition<StubSubEvent1, StubEvent, Object>(Mockito.mock(OutputState.class), Mockito.mock(InputState.class)) {
 			@Override
-			protected boolean accept(final StubEvent event) {
-				return false;
+			protected StubSubEvent1 accept(final StubEvent event) {
+				return null;
 			}
 			@Override
-			protected boolean isGuardOK(final StubEvent event) {
+			protected boolean isGuardOK(final StubSubEvent1 event) {
 				return false;
 			}
 			@Override

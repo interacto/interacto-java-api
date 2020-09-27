@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
  * A transition that refers to another FSM.
  * Entering this transition starts the underlying sub-FSM.
  * To leave the transition, the sub-FSM must end.
- * @param <E> The type of events the FSM processes.
+ * @param <E0> The type of events the FSM processes.
  */
-public class SubFSMTransition<E> extends Transition<E> {
-	private final FSM<E> subFSM;
+public class SubFSMTransition<E0> extends Transition<E0, E0> {
+	private final FSM<E0> subFSM;
 	private final FSMHandler subFSMHandler;
 
 	/**
@@ -35,7 +35,7 @@ public class SubFSMTransition<E> extends Transition<E> {
 	 * @param fsm The inner FSM that composes the transition.
 	 * @throws IllegalArgumentException If one of the states is null.
 	 */
-	public SubFSMTransition(final OutputState<E> srcState, final InputState<E> tgtState, final FSM<E> fsm) {
+	public SubFSMTransition(final OutputState<E0> srcState, final InputState<E0> tgtState, final FSM<E0> fsm) {
 		super(srcState, tgtState);
 
 		if(fsm == null) {
@@ -70,7 +70,7 @@ public class SubFSMTransition<E> extends Transition<E> {
 					return;
 				}
 				if(tgt instanceof OutputState) {
-					src.getFSM().setCurrentState((OutputState<E>) tgt);
+					src.getFSM().setCurrentState((OutputState<E0>) tgt);
 					tgt.enter();
 				}
 			}
@@ -85,8 +85,8 @@ public class SubFSMTransition<E> extends Transition<E> {
 	}
 
 	@Override
-	public Optional<InputState<E>> execute(final E event) {
-		final Optional<Transition<E>> transition = findTransition(event);
+	public Optional<InputState<E0>> execute(final E0 event) {
+		final Optional<Transition<E0, E0>> transition = findTransition(event);
 
 		if(transition.isPresent()) {
 			src.getFSM().stopCurrentTimeout();
@@ -100,21 +100,22 @@ public class SubFSMTransition<E> extends Transition<E> {
 	}
 
 	@Override
-	protected boolean accept(final E event) {
-		return findTransition(event).isPresent();
+	protected E0 accept(final E0 event) {
+		return findTransition(event).isEmpty() ? null : event;
 	}
 
 	@Override
-	protected boolean isGuardOK(final E event) {
+	protected boolean isGuardOK(final E0 event) {
 		return findTransition(event)
 			.filter(tr -> tr.isGuardOK(event))
 			.isPresent();
 	}
 
-	private Optional<Transition<E>> findTransition(final E event) {
+	private Optional<Transition<E0, E0>> findTransition(final E0 event) {
 		return subFSM.initState.transitions
 			.stream()
-			.filter(tr -> tr.accept(event))
+			.filter(tr -> tr.accept(event) != null)
+			.map(tr -> (Transition<E0, E0>) tr)
 			.findFirst();
 	}
 

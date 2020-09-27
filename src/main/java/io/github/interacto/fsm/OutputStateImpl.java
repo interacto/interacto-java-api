@@ -23,7 +23,7 @@ import java.util.List;
  * @param <E> The type of events the FSM processes.
  */
 public abstract class OutputStateImpl<E> extends StateImpl<E> implements OutputState<E> {
-	protected final List<Transition<E>> transitions;
+	protected final List<Transition<? extends E, E>> transitions;
 
 	/**
 	 * Creates the state.
@@ -37,12 +37,12 @@ public abstract class OutputStateImpl<E> extends StateImpl<E> implements OutputS
 
 
 	@Override
-	public List<Transition<E>> getTransitions() {
+	public List<Transition<? extends E, E>> getTransitions() {
 		return Collections.unmodifiableList(transitions);
 	}
 
 	@Override
-	public void addTransition(final Transition<E> tr) {
+	public void addTransition(final Transition<? extends E, E> tr) {
 		if(tr != null) {
 			transitions.add(tr);
 		}

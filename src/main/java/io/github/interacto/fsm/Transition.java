@@ -19,11 +19,12 @@ import java.util.Set;
 
 /**
  * The base implementation of a FSM transition.
- * @param <E> The type of events the FSM processes.
+ * @param <E> The type of events the transition processes.
+ * @param <E0> The type of events the FSM processes. Parent of E.
  */
-public abstract class Transition<E> {
-	protected final OutputState<E> src;
-	protected final InputState<E> tgt;
+public abstract class Transition<E extends E0, E0> {
+	protected final OutputState<E0> src;
+	protected final InputState<E0> tgt;
 
 	/**
 	 * Creates the transition.
@@ -31,7 +32,7 @@ public abstract class Transition<E> {
 	 * @param tgtState The output state of the transition.
 	 * @throws IllegalArgumentException If one of the states is null.
 	 */
-	protected Transition(final OutputState<E> srcState, final InputState<E> tgtState) {
+	protected Transition(final OutputState<E0> srcState, final InputState<E0> tgtState) {
 		super();
 
 		if(srcState == null || tgtState == null) {
@@ -50,10 +51,11 @@ public abstract class Transition<E> {
 	 * @return The potential output state.
 	 * @throws CancelFSMException If the execution cancels the FSM execution.
 	 */
-	public Optional<InputState<E>> execute(final E event) throws CancelFSMException {
-		if(accept(event) && isGuardOK(event)) {
+	public Optional<InputState<E0>> execute(final E0 event) throws CancelFSMException {
+		final E typedEvent = accept(event);
+		if(typedEvent != null && isGuardOK(typedEvent)) {
 			src.getFSM().stopCurrentTimeout();
-			action(event);
+			action(typedEvent);
 			src.exit();
 			tgt.enter();
 			return Optional.of(tgt);
@@ -62,11 +64,28 @@ public abstract class Transition<E> {
 		return Optional.empty();
 	}
 
+	/**
+	 * The action method of the transition.
+	 * Should be overridden to define what to do when the transition
+	 * is both accepted and its guard validated.
+	 * @param event The event to process.
+	 */
 	protected void action(final E event) {
 	}
 
-	protected abstract boolean accept(final E event);
+	/**
+	 * Checks whether the given event of type E0 is of type E.
+	 * @param event The event to check.
+	 * @return The same event but typed as E.
+	 */
+	protected abstract E accept(final E0 event);
 
+	/**
+	 * Checks whether the transition accepts the given event of type E.
+	 * This is the guard of the transition. Differs from `accept`.
+	 * @param event The event to check
+	 * @return True whether the event is accepted.
+	 */
 	protected abstract boolean isGuardOK(final E event);
 
 	/**
