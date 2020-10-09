@@ -151,10 +151,12 @@ public class TestConcurrentFSM {
 			fsm.process("touch2");
 			fsm.process("release1");
 			Mockito.verify(handler, Mockito.times(1)).fsmStarts();
+			Mockito.verify(handler, Mockito.times(1)).fsmUpdates();
 			Mockito.verify(handler, Mockito.times(1)).fsmStops();
 			Mockito.verify(handler1, Mockito.times(1)).fsmStarts();
 			Mockito.verify(handler1, Mockito.times(1)).fsmStops();
 			Mockito.verify(handler2, Mockito.times(1)).fsmStarts();
+			Mockito.verify(handler2, Mockito.times(1)).fsmUpdates();
 			Mockito.verify(handler2, Mockito.never()).fsmStops();
 			assertTrue(fsm2.isStarted());
 		}
@@ -184,11 +186,14 @@ public class TestConcurrentFSM {
 			assertTrue(fsm1.isStarted());
 			assertFalse(fsm2.isStarted());
 			Mockito.verify(handler, Mockito.times(2)).fsmStarts();
+			Mockito.verify(handler, Mockito.times(3)).fsmUpdates();
 			Mockito.verify(handler, Mockito.times(2)).fsmStops();
 			Mockito.verify(handler1, Mockito.times(2)).fsmStarts();
 			Mockito.verify(handler1, Mockito.times(1)).fsmStops();
+			Mockito.verify(handler1, Mockito.times(3)).fsmUpdates();
 			Mockito.verify(handler2, Mockito.times(1)).fsmStarts();
 			Mockito.verify(handler2, Mockito.times(1)).fsmStops();
+			Mockito.verify(handler2, Mockito.times(2)).fsmUpdates();
 		}
 
 		@Test
