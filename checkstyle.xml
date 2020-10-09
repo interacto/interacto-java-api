@@ -33,6 +33,10 @@
         <module name="MissingJavadocMethod">
             <property name="scope" value="public"/>
         </module>
+        <module name="JavadocContentLocationCheck"/>
+        <module name="JavadocMissingWhitespaceAfterAsterisk"/>
+        <module name="UnnecessarySemicolonInEnumeration"/>
+        <module name="UnnecessaryParentheses"/>
         <module name="SingleLineJavadoc"/>
         <module name="InvalidJavadocPosition"/>
         <module name="JavadocBlockTagLocation"/>
