@@ -582,7 +582,7 @@ public class TestFSM {
 		@Test
 		@DisplayName("timeout execution returns an output state")
 		void testTimeoutExecutionReturnsOutputState() throws CancelFSMException {
-			final var out = new StdState<>(Mockito.mock(FSM.class), "foo");
+			final var out = new StdState<StubEvent>(Mockito.mock(FSM.class), "foo");
 			fsm.currentTimeout = Mockito.mock(TimeoutTransition.class);
 			Mockito.when(fsm.currentTimeout.execute(null)).thenReturn(Optional.of(out));
 			fsm.onTimeout();
