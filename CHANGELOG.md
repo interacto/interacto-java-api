@@ -1,3 +1,12 @@
+# 4.3.1
+
+* fix(test): warning fixed
+* test(fsm): new test to kill an extreme mutant
+* clean(test): test cleaned
+* config(pom): adding branch coverage threshold
+* config(pom): moving version to snapshot
+* config(pom): tools updated
+
 # 4.3.0
 
 * feat(fsm): better typing of FSMs and their transitions
