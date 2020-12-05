@@ -613,7 +613,7 @@ public class TestFSM {
 		}
 
 		@Test
-		void testTimeoutChangeStateThenCancel() throws InterruptedException, CancelFSMException {
+		void testTimeoutChangeStateThenCancel() throws CancelFSMException {
 			fsm.process(new StubEvent());
 			Mockito.doThrow(new CancelFSMException()).when(handler).fsmUpdates();
 			HelperTest.waitForTimeoutTransitions();
