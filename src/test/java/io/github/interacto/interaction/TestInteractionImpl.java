@@ -205,62 +205,53 @@ public class TestInteractionImpl {
 	}
 
 	@Test
-	void testProcessFirstEventOnlyWithThrottling() {
+	void testProcessWithThrottlingDifferentSuccessiveTypes() throws ExecutionException, InterruptedException {
+		final Object evt1 = new Object();
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(1000);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(new Object());
-		spy.processEvent(new Object());
-		spy.processEvent(new Object());
-		Mockito.verify(spy, Mockito.times(1)).consumeEvent(Mockito.any());
+		interaction.processEvent(evt1);
+		interaction.processEvent("foo");
+		interaction.currThrottleTimeoutFuture.get();
+
+		Mockito.verify(fsm, Mockito.times(1)).process(evt1);
+		Mockito.verify(fsm, Mockito.times(1)).process("foo");
+		Mockito.verify(fsm, Mockito.times(2)).process(Mockito.any());
 	}
 
 	@Test
-	void testProcessWithThrottlingDifferentSuccessiveTypes() {
-		final Object evt1 = new Object();
-		final Object evt2 = "foo";
+	void testProcessWithThrottlingThreePlusOneOfDifferentTypes() throws ExecutionException, InterruptedException {
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
-		interaction.setThrottleTimeout(1000);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(evt1);
-		spy.processEvent(evt2);
-		Mockito.verify(spy, Mockito.times(1)).consumeEvent(evt1);
-		Mockito.verify(spy, Mockito.times(1)).consumeEvent(evt2);
-	}
+		interaction.setThrottleTimeout(100);
+		interaction.processEvent("1");
+		interaction.processEvent("2");
+		interaction.processEvent("3");
+		interaction.processEvent(42);
+		interaction.currThrottleTimeoutFuture.get();
+		interaction.executor.awaitTermination(200, TimeUnit.MILLISECONDS);
 
-	@Test
-	void testProcessWithThrottlingDifferentTypes() {
-		final Object evt1 = new Object();
-		final Object evt2 = "foo";
-		interaction.setConsumeEvents(true);
-		interaction.setActivated(true);
-		interaction.setThrottleTimeout(500);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(evt1); // 1
-		spy.processEvent(new Object()); // ignored
-		spy.processEvent(new Object()); // 2 as the next one is of different type
-		spy.processEvent(evt2); // 3
-		spy.processEvent("bar"); // ignored
-		Mockito.verify(spy, Mockito.times(3)).consumeEvent(Mockito.any());
+		Mockito.verify(fsm, Mockito.times(1)).process("3");
+		Mockito.verify(fsm, Mockito.times(1)).process(42);
+		Mockito.verify(fsm, Mockito.times(2)).process(Mockito.any());
 	}
 
 	@Test
 	void testProcessWithThrottlingDifferentTypesAfterTimeout() throws ExecutionException, InterruptedException {
-		final Object evt1 = new Object();
-		final Object evt2 = "foo";
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(1000);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(evt1); // 1
-		spy.processEvent(new Object()); // ignored
-		spy.processEvent(new Object()); // 2 as the next one is of different type
-		spy.processEvent(evt2); // 3
-		spy.processEvent("bar"); // 4
-		spy.currThrottleTimeoutFuture.get();
-		Mockito.verify(spy, Mockito.times(4)).consumeEvent(Mockito.any());
+		interaction.processEvent("1");
+		interaction.processEvent("2");
+		interaction.processEvent("3");
+		interaction.processEvent(42);
+		interaction.processEvent("bar");
+		interaction.currThrottleTimeoutFuture.get();
+
+		Mockito.verify(fsm, Mockito.times(1)).process("3");
+		Mockito.verify(fsm, Mockito.times(1)).process(42);
+		Mockito.verify(fsm, Mockito.times(1)).process("bar");
+		Mockito.verify(fsm, Mockito.times(3)).process(Mockito.any());
 	}
 
 
@@ -269,10 +260,10 @@ public class TestInteractionImpl {
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(200);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(new Object());
-		spy.currThrottleTimeoutFuture.get();
-		Mockito.verify(spy, Mockito.times(1)).consumeEvent(Mockito.any());
+		interaction.processEvent("1");
+		interaction.currThrottleTimeoutFuture.get();
+		Mockito.verify(fsm, Mockito.times(1)).process("1");
+		Mockito.verify(fsm, Mockito.times(1)).process(Mockito.any());
 	}
 
 	@Test
@@ -280,12 +271,13 @@ public class TestInteractionImpl {
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(200);
-		final InteractionStub spy = Mockito.spy(interaction);
-		spy.processEvent(new Object());
-		spy.currThrottleTimeoutFuture.get();
-		spy.processEvent(new Object());
-		spy.currThrottleTimeoutFuture.get();
-		Mockito.verify(spy, Mockito.times(2)).consumeEvent(Mockito.any());
+		interaction.processEvent("1");
+		interaction.currThrottleTimeoutFuture.get();
+		interaction.processEvent("2");
+		interaction.currThrottleTimeoutFuture.get();
+		Mockito.verify(fsm, Mockito.times(1)).process("1");
+		Mockito.verify(fsm, Mockito.times(1)).process("2");
+		Mockito.verify(fsm, Mockito.times(2)).process(Mockito.any());
 	}
 
 	@Test
@@ -319,7 +311,7 @@ public class TestInteractionImpl {
 		final Thread mockThread = Mockito.mock(Thread.class);
 		Mockito.when(mock.currentThread()).thenReturn(mockThread);
 		interaction.executor = Mockito.mock(ExecutorService.class);
-		Mockito.when(interaction.executor.awaitTermination(5, TimeUnit.SECONDS)).thenThrow(InterruptedException.class);
+		Mockito.when(interaction.executor.awaitTermination(10, TimeUnit.MILLISECONDS)).thenThrow(InterruptedException.class);
 		interaction.setActivated(true);
 		interaction.setThrottleTimeout(10000);
 		interaction.processEvent(new Object());

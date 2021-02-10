@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -51,7 +50,6 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	protected boolean activated;
 	protected Logger logger;
 	protected long throttleTimeout;
-	protected final AtomicLong throttleCounter;
 	protected E currentThrottledEvent;
 	/** The current throttle thread in progress. */
 	protected Future<?> currThrottleTimeoutFuture;
@@ -77,7 +75,6 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		this.fsm = fsm;
 		disposable = fsm.currentState().subscribe(current -> updateEventsRegistered(current.getValue(), current.getKey()));
 		activated = true;
-		throttleCounter = new AtomicLong();
 		currentThrottledEvent = null;
 		consumeEvents = false;
 	}
@@ -156,14 +153,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		currThrottleTimeoutFuture = executor.submit(() -> {
 			try {
 				ThreadService.getInstance().sleep(throttleTimeout);
-				E evt = null;
-				if(throttleCounter.getAndSet(0L) > 0L) {
-					evt = currentThrottledEvent;
-				}
+				final E evt = currentThrottledEvent;
 				currentThrottledEvent = null;
 				if(evt != null) {
-					final E evtToProcess = evt;
-					runInUIThread(() -> directEventProcess(evtToProcess));
+					runInUIThread(() -> directEventProcess(evt));
 				}
 			}catch(final InterruptedException ex) {
 				ThreadService.getInstance().currentThread().interrupt();
@@ -184,20 +177,18 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	 * @param event The event to check.
 	 * @return True: the event must be processed by the interaction.
 	 */
-	private boolean checkThrottlingEvent(final E event) {
-		if(currentThrottledEvent == null || !isEventsOfSameType(currentThrottledEvent, event)) {
-			if(throttleCounter.getAndSet(0L) > 0L) {
-				directEventProcess(event);
+	private void checkThrottlingEvent(final E event) {
+		final var latestEvt = currentThrottledEvent;
+
+		if(latestEvt == null || !isEventsOfSameType(latestEvt, event)) {
+			if(latestEvt != null) {
+				directEventProcess(latestEvt);
 			}
 			currentThrottledEvent = event;
 			createThrottleTimeout();
-			return true;
-		}else {
-			// The previous throttled event is ignored
-			throttleCounter.incrementAndGet();
-			currentThrottledEvent = event;
-			return false;
 		}
+		// The previous throttled event is ignored
+		currentThrottledEvent = event;
 	}
 
 	/**
@@ -206,8 +197,10 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 	 */
 	public void processEvent(final E event) {
 		if(isActivated()) {
-			if(throttleTimeout <= 0L || checkThrottlingEvent(event)) {
+			if(throttleTimeout <= 0L) {
 				directEventProcess(event);
+			}else {
+				checkThrottlingEvent(event);
 			}
 		}
 	}
@@ -278,7 +271,7 @@ public abstract class InteractionImpl<D extends InteractionData, E, F extends FS
 		if(executor != null) {
 			executor.shutdownNow();
 			try {
-				executor.awaitTermination(5, TimeUnit.SECONDS);
+				executor.awaitTermination(10, TimeUnit.MILLISECONDS);
 			}catch(final InterruptedException ex) {
 				ThreadService.getInstance().currentThread().interrupt();
 			}
