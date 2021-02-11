@@ -209,15 +209,26 @@ public class TestInteractionImpl {
 		final Object evt1 = new Object();
 		interaction.setConsumeEvents(true);
 		interaction.setActivated(true);
-		interaction.setThrottleTimeout(3000);
+		interaction.setThrottleTimeout(500);
 		interaction.processEvent(evt1);
 		interaction.processEvent("foo");
 		interaction.currThrottleTimeoutFuture.get();
-		interaction.executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
 
 		Mockito.verify(fsm, Mockito.times(1)).process(evt1);
 		Mockito.verify(fsm, Mockito.times(1)).process("foo");
 		Mockito.verify(fsm, Mockito.times(2)).process(Mockito.any());
+	}
+
+	@Test
+	void testThrottlingWithNullEvt() throws ExecutionException, InterruptedException {
+		final Object evt1 = new Object();
+		interaction.setConsumeEvents(true);
+		interaction.setActivated(true);
+		interaction.setThrottleTimeout(1000);
+		interaction.processEvent(evt1);
+		interaction.currentThrottledEvent = null;
+		interaction.currThrottleTimeoutFuture.get();
+		Mockito.verify(fsm, Mockito.never()).process(Mockito.any());
 	}
 
 	@Test
