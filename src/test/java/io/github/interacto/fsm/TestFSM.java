@@ -548,7 +548,7 @@ public class TestFSM {
 			iToS = new StubTransitionOK<>(fsm.initState, std);
 			sToT = new StubTransitionOK<>(std, terminal);
 			new SubStubTransition2(std, std3, true);
-			timeout = new TimeoutTransition<>(std, std2, () -> 100L);
+			timeout = new TimeoutTransition<>(std, std2, () -> 500L);
 			new StubTransitionOK<>(std2, std);
 			fsm.addState(std);
 			fsm.addState(std2);
