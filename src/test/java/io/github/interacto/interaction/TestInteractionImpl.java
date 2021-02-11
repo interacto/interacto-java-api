@@ -14,6 +14,7 @@
  */
 package io.github.interacto.interaction;
 
+import io.github.interacto.HelperTest;
 import io.github.interacto.fsm.FSM;
 import io.github.interacto.fsm.InitState;
 import io.github.interacto.fsm.OutputState;
@@ -213,6 +214,7 @@ public class TestInteractionImpl {
 		interaction.processEvent(evt1);
 		interaction.processEvent("foo");
 		interaction.currThrottleTimeoutFuture.get();
+		HelperTest.waitForTimeoutTransitions();
 
 		Mockito.verify(fsm, Mockito.times(1)).process(evt1);
 		Mockito.verify(fsm, Mockito.times(1)).process("foo");
