@@ -607,6 +607,7 @@ public class TestFSM {
 			final var spy = Mockito.spy(fsm.currentTimeout);
 			fsm.currentTimeout = spy;
 			fsm.process(new StubSubEvent2());
+			HelperTest.waitForTimeoutTransitions();
 			assertEquals(std3, fsm.getCurrentState());
 			assertNull(fsm.currentTimeout);
 			Mockito.verify(spy, Mockito.times(1)).stopTimeout();
